@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f63b3">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Mi Closet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,600&family=Nunito:wght@400;600;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<style>
+/* Layout: una columna tipo app de celular; tarjetas por sección, cajas como etiquetas con número grande. */
+:root{
+  --bg:#f6f8fb; --surface:#ffffff; --ink:#16233a; --muted:#5d6b80; --line:#dde4ee;
+  --accent:#1f63b3; --accent-ink:#ffffff; --accent-soft:#e6eefa; --box:#8a5a2b; --box-soft:#f5ebe0;
+  --danger:#b3261e; --ok:#1d7a4a;
+  --display:"Fraunces", Georgia, "Times New Roman", serif;
+  --body:"Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1520; --surface:#18212f; --ink:#e8eef7; --muted:#9aa8bc; --line:#2a3647;
+  --accent:#6ea8f0; --accent-ink:#0b1422; --accent-soft:#1d2d45; --box:#d9a46c; --box-soft:#2e241a;
+  --danger:#ff8a80; --ok:#6fd39c; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1520; --surface:#18212f; --ink:#e8eef7; --muted:#9aa8bc; --line:#2a3647;
+  --accent:#6ea8f0; --accent-ink:#0b1422; --accent-soft:#1d2d45; --box:#d9a46c; --box-soft:#2e241a;
+  --danger:#ff8a80; --ok:#6fd39c; color-scheme:dark }
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{margin:0;padding-top:env(safe-area-inset-top,0px)}
+.login{max-width:380px;margin:40px auto 0}
+.err{color:var(--danger);font-size:14px;margin-top:8px}
+@media print{.fab,.noprint,.back,.top{display:none!important}body{background:#fff}.labels{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.labels img{width:100%;break-inside:avoid}}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 110px}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance}
+h1{font-size:30px;letter-spacing:-.01em}
+h1 em{color:var(--accent);font-style:italic}
+h2{font-size:22px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.status{font-size:12px;color:var(--muted)}
+.search{margin-top:14px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:0 16px}
+.search input{border:0;background:transparent;flex:1;min-width:0;padding:13px 0;outline:none}
+.tabs{display:flex;gap:6px;margin-top:14px;overflow-x:auto}
+.tab{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:700;font-size:14px;white-space:nowrap}
+.tab[aria-current="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.stats{display:flex;gap:18px;margin:16px 2px 4px;color:var(--muted);font-size:13px;flex-wrap:wrap}
+.stats b{color:var(--ink);font-size:17px;font-variant-numeric:tabular-nums;margin-right:4px}
+.group-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:22px 2px 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sec{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;min-height:74px}
+.sec .n{font-weight:800;font-size:15px}
+.sec .c{font-size:13px;color:var(--muted)}
+.sec .c.zero{opacity:.7}
+.sec .sw{width:22px;height:5px;border-radius:3px;margin-bottom:6px}
+.list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:left;width:100%}
+.thumb{width:54px;height:54px;border-radius:10px;flex:none;background:var(--accent-soft);display:grid;place-items:center;font-family:var(--display);font-weight:600;color:var(--accent);font-size:20px;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.item .txt{min-width:0;flex:1}
+.item .t{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .s{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:8px;padding:3px 8px;flex:none}
+.pill.box{background:var(--box-soft);color:var(--box)}
+.pill.loc{background:var(--accent-soft);color:var(--accent)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:10px}
+.card{display:flex;flex-direction:column;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:0;overflow:hidden;position:relative;min-width:0}
+.card .ph{aspect-ratio:1/1;width:100%;max-width:100%;display:grid;place-items:center;background:var(--accent-soft);position:relative;overflow:hidden}
+.card .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.card .ph .ini{font-family:var(--display);font-size:46px;font-weight:600;line-height:1}
+.card .ph .add{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:11px;font-weight:800;color:var(--muted)}
+.card .badge{position:absolute;top:8px;left:8px;z-index:1}
+.card .badge .boxtag{min-width:0;padding:4px 8px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.card .badge .boxtag span{font-size:18px}
+.card .badge .pill{box-shadow:0 2px 8px rgba(0,0,0,.12);background:var(--surface)}
+.card .bd{padding:10px 12px 12px;min-width:0}
+.card .t{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .s{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.boxcard{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;text-align:left;width:100%}
+.boxtag{flex:none;background:var(--box);color:var(--bg);border-radius:12px;padding:6px 10px;text-align:center;min-width:64px}
+.boxtag small{display:block;font-size:10px;letter-spacing:.14em;font-weight:800}
+.boxtag span{font-family:var(--display);font-size:24px;font-weight:600;line-height:1}
+.back{border:0;background:none;color:var(--accent);font-weight:800;padding:6px 0;margin-bottom:6px}
+.head{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.head .meta{flex:1;min-width:200px}
+.head p{margin:4px 0 0;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;font-weight:800}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger)}
+.btn.danger.armed{background:var(--danger);color:var(--surface);border-color:var(--danger)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.qrbox{background:#fff;border-radius:12px;padding:10px;width:140px;flex:none;border:1px solid var(--line)}
+.qrbox canvas{width:100%;height:auto;display:block}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--muted);margin-top:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:700}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.fab{position:fixed;right:max(18px,calc(env(safe-area-inset-right,0px) + 18px));bottom:calc(env(safe-area-inset-bottom,0px) + 18px);background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:15px 20px;font-weight:800;font-size:16px;box-shadow:0 8px 24px rgba(16,35,70,.25);z-index:5}
+.sheet-bg{position:fixed;inset:0;background:rgba(10,18,30,.5);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:620px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:18px max(16px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet h2{margin-bottom:12px}
+.f{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.f label{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.04em}
+.f input,.f select,.f textarea{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.photo-prev{width:90px;height:90px;border-radius:12px;object-fit:cover;border:1px solid var(--line)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 86px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:700;z-index:30;max-width:90%}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.example{font-size:10px;font-weight:800;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 5px;margin-left:6px;vertical-align:2px}
+@media (max-width:420px){h1{font-size:26px}.two{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+  <div class="top"><h1>Mi <em>Closet</em></h1><span class="status" id="status">Cargando tu ropa…</span></div>
+  <div class="empty" style="margin-top:20px">Aquí aparecerán tus secciones (gimnasio, calor, invierno…) y tus cajas con su QR. Toca <b>+ Agregar</b> para registrar la primera prenda.</div>
+</div>
+<button class="fab" id="fab" type="button">+ Agregar</button>
+<div id="layer"></div>
+
+<script>
+// ====== Configuración ======
+const APP_URL = location.origin + location.pathname; // los QR apuntan aquí + #caja-c01
+
+const SECCIONES = [
+  ["Por clima", [
+    ["calor","Calor / verano","#e0892b"],
+    ["invierno","Invierno / frío","#3f7cc4"],
+    ["entretiempo","Entretiempo","#7a8f3a"],
+    ["lluvia","Lluvia","#4c8c9c"],
+    ["abrigos","Chamarras y abrigos","#5b5f8f"],
+  ]],
+  ["Por ocasión", [
+    ["casual","Casual diario","#2f8a6a"],
+    ["formal","Formal / oficina","#2c3e66"],
+    ["trajes","Trajes y eventos","#6b3fa0"],
+    ["fiesta","Salir / fiesta","#c0407a"],
+    ["trabajo","Trabajo / uniforme","#6d6d6d"],
+    ["viaje","Viaje","#2a8fb8"],
+  ]],
+  ["Deporte y casa", [
+    ["gimnasio","Gimnasio y deporte","#d4502e"],
+    ["playa","Traje de baño / playa","#1aa3a3"],
+    ["casa","Casa / descanso","#9a7b4f"],
+    ["pijamas","Pijamas","#7d6bc4"],
+  ]],
+  ["Básicos", [
+    ["interior","Ropa interior","#b0577a"],
+    ["calcetines","Calcetines","#58799b"],
+    ["accesorios","Accesorios","#a8862a"],
+    ["calzado","Calzado","#7a4b2c"],
+  ]],
+  ["Pendientes", [
+    ["reparar","Por reparar / ajustar","#b3481e"],
+    ["donar","Para donar o vender","#738065"],
+  ]],
+];
+const SEC = {}; SECCIONES.forEach(([g,l])=>l.forEach(([id,n,c])=>SEC[id]={id,n,c,g}));
+const UBICACIONES = [["closet","Closet (colgado)"],["cajon","Cajón"],["caja","En una caja"],["lavanderia","Lavandería / sucia"],["prestada","Prestada"]];
+const UBI = Object.fromEntries(UBICACIONES);
+
+// ====== Estado ======
+let sb=null, assets=true;
+const urlCache=new Map();
+const store={
+  async reload(){
+    const [p,c]=await Promise.all([sb.from("prendas").select("*"),sb.from("cajas").select("*")]);
+    if(p.error||c.error) throw (p.error||c.error);
+    S.prendas=new Map(p.data.map(r=>[r.id,clean(r)]));
+    S.cajas=new Map(c.data.map(r=>[r.codigo.toLowerCase(),Object.assign(clean(r),{id:r.codigo.toLowerCase()})]));
+    const need=p.data.map(r=>r.foto).filter(f=>f&&!urlCache.has(f));
+    if(need.length){ const {data}=await sb.storage.from("fotos").createSignedUrls(need,60*60*24*7); (data||[]).forEach(d=>{if(d.signedUrl)urlCache.set(d.path,d.signedUrl)}) }
+    S.loaded.p=S.loaded.c=true;
+    if(!$("#layer").innerHTML) render(); else pending=true;
+  },
+  async savePrenda(id,data){ data=Object.assign({},data); delete data.id; if(!data.caja) data.caja=null;
+    const r= id? await sb.from("prendas").update(data).eq("id",id) : await sb.from("prendas").insert(data); if(r.error) throw r.error; await store.reload() },
+  async deletePrenda(id){ const r=await sb.from("prendas").delete().eq("id",id); if(r.error) throw r.error; await store.reload() },
+  async saveCaja(codigo,data){ data=Object.assign({},data); delete data.id; if(!data.creado) delete data.creado; data.codigo=codigo; const r=await sb.from("cajas").upsert(data); if(r.error) throw r.error; await store.reload() },
+  async deleteCaja(codigo){ const r=await sb.from("cajas").delete().eq("codigo",codigo); if(r.error) throw r.error; await store.reload() },
+  async uploadFoto(blob){ const path=(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2))+".jpg";
+    const r=await sb.storage.from("fotos").upload(path,blob,{contentType:blob.type||"image/jpeg"}); if(r.error) throw r.error; return path }
+};
+function clean(r){const o={};for(const k in r){o[k]=r[k]==null?"":r[k]}return o}
+const S = { prendas:new Map(), cajas:new Map(), loaded:{p:false,c:false}, q:"", tab:"secciones", ubiFilter:"" };
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s=>String(s??"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const imgSrc = p=>p?(urlCache.get(p)||""):"";
+function toast(msg){const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+
+// ====== Rutas (#seccion-x, #caja-c01, #cajas, #todo) ======
+function route(){const h=decodeURIComponent(location.hash.slice(1));return h}
+function go(h){ if(location.hash.slice(1)===h) render(); else location.hash=h; window.scrollTo(0,0) }
+window.addEventListener("hashchange",()=>{render();window.scrollTo(0,0)});
+
+// ====== Render ======
+function prendasArr(){return [...S.prendas.values()].sort((a,b)=>norm(a.nombre).localeCompare(norm(b.nombre)))}
+function cajasArr(){return [...S.cajas.values()].sort((a,b)=>a.codigo.localeCompare(b.codigo,undefined,{numeric:true}))}
+function enCaja(cod){return prendasArr().filter(p=>p.ubicacion==="caja"&&p.caja===cod)}
+function countSec(id){let n=0;S.prendas.forEach(p=>{if(p.seccion===id)n++});return n}
+
+function itemHTML(p){
+  const sec=SEC[p.seccion]; const bits=[sec?sec.n:"", p.color, p.talla?("Talla "+p.talla):"", p.marca].filter(Boolean).join(" · ");
+  const where = p.ubicacion==="caja"&&p.caja ? `<span class="pill box">Caja ${esc(p.caja)}</span>` : `<span class="pill loc">${esc(UBI[p.ubicacion]||"Closet")}</span>`;
+  const th = p.foto ? `<img src="${esc(imgSrc(p.foto))}" alt="" loading="lazy">` : esc((p.nombre||"?").trim().charAt(0).toUpperCase());
+  return `<button class="item" type="button" data-edit="${esc(p.id)}"><div class="thumb" style="${sec?`color:${sec.c}`:""}">${th}</div><div class="txt"><div class="t">${esc(p.nombre)}${p.ejemplo?'<span class="example">EJEMPLO</span>':""}</div><div class="s">${esc(bits)}</div></div>${where}</button>`;
+}
+function cardHTML(p,hideBox){
+  const sec=SEC[p.seccion]; const bits=[p.color, p.talla?("Talla "+p.talla):"", p.marca].filter(Boolean).join(" · ")||(sec?sec.n:"");
+  let badge="";
+  if(p.ubicacion==="caja"&&p.caja){ if(!hideBox) badge=`<div class="badge"><div class="boxtag"><small>CAJA</small><span>${esc(p.caja.replace(/^C/,""))}</span></div></div>` }
+  else if(p.ubicacion&&p.ubicacion!=="closet") badge=`<div class="badge"><span class="pill loc">${esc(UBI[p.ubicacion]||"")}</span></div>`;
+  const ph = p.foto ? `<img src="${esc(imgSrc(p.foto))}" alt="${esc(p.nombre)}" loading="lazy">` : `<span class="ini" style="color:${sec?sec.c:"var(--accent)"}">${esc((p.nombre||"?").trim().charAt(0).toUpperCase())}</span><span class="add">Toca para agregar foto</span>`;
+  return `<button class="card" type="button" data-edit="${esc(p.id)}">${badge}<div class="ph">${ph}</div><div class="bd"><div class="t">${esc(p.nombre)}${p.ejemplo?'<span class="example">EJEMPLO</span>':""}</div><div class="s">${esc(bits)}</div></div></button>`;
+}
+function boxCardHTML(c){
+  const n=enCaja(c.codigo).length;
+  return `<button class="boxcard" type="button" data-go="caja-${esc(c.codigo.toLowerCase())}"><div class="boxtag"><small>CAJA</small><span>${esc(c.codigo.replace(/^C/,""))}</span></div><div class="txt" style="min-width:0;flex:1"><div class="t" style="font-weight:800">${esc(c.nombre||"Sin nombre")}${c.ejemplo?'<span class="example">EJEMPLO</span>':""}</div><div class="s" style="color:var(--muted);font-size:13px">${n} ${n===1?"prenda":"prendas"}${c.lugar?" · "+esc(c.lugar):""}</div></div></button>`;
+}
+function searchHits(){
+  const q=norm(S.q).trim(); if(!q) return null;
+  const words=q.split(/\s+/);
+  return prendasArr().filter(p=>{
+    const hay=norm([p.nombre,p.color,p.talla,p.marca,p.notas,SEC[p.seccion]?.n,UBI[p.ubicacion],p.caja?("caja "+p.caja+" "+p.caja.replace(/^C0*/,"")):""].join(" "));
+    return words.every(w=>hay.includes(w));
+  });
+}
+
+function render(){
+  const app=$("#app"); const r=route();
+  const loaded=S.loaded.p&&S.loaded.c;
+  let body="";
+  if(r==="etiquetas") body=viewEtiquetas();
+  else if(r.startsWith("caja-")) body=viewCaja(r.slice(5).toUpperCase());
+  else if(r.startsWith("seccion-")) body=viewSeccion(r.slice(8));
+  else body=viewHome(r==="cajas"?"cajas":r==="todo"?"todo":"secciones");
+  app.innerHTML=`<div class="top"><h1>Mi <em>Closet</em></h1><span class="status" id="status">${loaded?"":"Cargando…"}</span></div>`+body;
+  wire(app);
+  drawQRs();
+}
+
+function viewHome(tab){
+  const hits=searchHits();
+  const tP=S.prendas.size, tC=S.cajas.size; let tEnCaja=0; S.prendas.forEach(p=>{if(p.ubicacion==="caja")tEnCaja++});
+  let h=`<div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--muted)"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Buscar: sudadera, negra, caja 3…" value="${esc(S.q)}" autocomplete="off"></div>`;
+  if(hits){
+    h+=`<div class="group-title">${hits.length} resultado${hits.length===1?"":"s"}</div>`;
+    h+= hits.length?`<div class="list">${hits.map(itemHTML).join("")}</div>`:`<div class="empty">No encontré nada con “${esc(S.q)}”.</div>`;
+    return h;
+  }
+  h+=`<div class="tabs" role="tablist">${[["secciones","Secciones"],["cajas","Cajas"],["todo","Toda la ropa"]].map(([k,n])=>`<button class="tab" type="button" data-go="${k==="secciones"?"":k}" aria-current="${tab===k}">${n}</button>`).join("")}</div>`;
+  h+=`<div class="stats"><span><b>${tP}</b>prendas</span><span><b>${tC}</b>cajas</span><span><b>${tEnCaja}</b>guardadas en caja</span></div>`;
+  if(tab==="secciones"){
+    SECCIONES.forEach(([g,l])=>{
+      h+=`<div class="group-title">${esc(g)}</div><div class="grid">`+l.map(([id,n,c])=>{const k=countSec(id);return `<button class="sec" type="button" data-go="seccion-${id}"><span class="sw" style="background:${c}"></span><span class="n">${esc(n)}</span><span class="c ${k?"":"zero"}">${k} ${k===1?"prenda":"prendas"}</span></button>`}).join("")+`</div>`;
+    });
+  } else if(tab==="cajas"){
+    const cs=cajasArr();
+    h+=`<div class="row"><button class="btn primary" type="button" data-newbox>+ Nueva caja</button>${cs.length?`<button class="btn" type="button" data-go="etiquetas">Imprimir etiquetas QR</button>`:""}<button class="btn" type="button" data-logout>Cerrar sesión</button></div>`;
+    h+= cs.length?`<div class="list">${cs.map(boxCardHTML).join("")}</div>`:`<div class="empty">Aún no tienes cajas. Crea una, imprime su QR y pégalo en la caja.</div>`;
+  } else {
+    h+=`<div class="chips">${[["","Todas"],...UBICACIONES].map(([k,n])=>`<button class="chip" type="button" data-ubi="${k}" aria-pressed="${S.ubiFilter===k}">${esc(n)}</button>`).join("")}</div>`;
+    const ps=prendasArr().filter(p=>!S.ubiFilter||p.ubicacion===S.ubiFilter);
+    h+= ps.length?`<div class="cards">${ps.map(p=>cardHTML(p)).join("")}</div>`:`<div class="empty">Nada por aquí todavía.</div>`;
+  }
+  return h;
+}
+
+function viewEtiquetas(){
+  const cs=cajasArr();
+  let h=`<button class="back" type="button" data-go="cajas">← Cajas</button><div class="noprint"><h2>Etiquetas QR</h2><p class="note">Se imprimen 2 por fila. Recórtalas y pégalas en cada caja.</p><div class="row"><button class="btn primary" type="button" data-print>Imprimir</button></div></div>`;
+  if(typeof qrcode!=="function") return h+`<div class="empty">El generador de QR no cargó. Recarga la página.</div>`;
+  return h+`<div class="labels cards" style="margin-top:14px">${cs.map(c=>`<img alt="Etiqueta caja ${esc(c.codigo)}" src="${labelCanvas(c).toDataURL("image/png")}" style="width:100%;border-radius:8px;border:1px solid var(--line);background:#fff">`).join("")}</div>`;
+}
+function viewSeccion(id){
+  const sec=SEC[id]; if(!sec) return `<button class="back" data-go="">← Inicio</button><div class="empty">Esa sección no existe.</div>`;
+  const ps=prendasArr().filter(p=>p.seccion===id);
+  const fuera=ps.filter(p=>p.ubicacion!=="caja"), dentro=ps.filter(p=>p.ubicacion==="caja");
+  let h=`<button class="back" type="button" data-go="">← Secciones</button><div class="head"><div class="meta"><span class="pill" style="background:${sec.c};color:#fff">${esc(sec.g)}</span><h2 style="margin-top:6px">${esc(sec.n)}</h2><p>${ps.length} ${ps.length===1?"prenda":"prendas"}</p></div></div>`;
+  h+=`<div class="row"><button class="btn primary" type="button" data-new-sec="${id}">+ Agregar a ${esc(sec.n)}</button></div>`;
+  if(!ps.length) return h+`<div class="empty">Todavía no hay prendas en esta sección.</div>`;
+  if(fuera.length) h+=`<div class="group-title">A la mano</div><div class="cards">${fuera.map(p=>cardHTML(p)).join("")}</div>`;
+  if(dentro.length) h+=`<div class="group-title">Guardadas en cajas</div><div class="cards">${dentro.map(p=>cardHTML(p)).join("")}</div>`;
+  return h;
+}
+
+function viewCaja(cod){
+  const c=S.cajas.get(cod.toLowerCase());
+  if(!c){ return `<button class="back" type="button" data-go="cajas">← Cajas</button>`+(S.loaded.c?`<div class="empty">La caja ${esc(cod)} todavía no está registrada.<div class="row" style="justify-content:center"><button class="btn primary" type="button" data-createbox="${esc(cod)}">Registrar caja ${esc(cod)}</button></div></div>`:`<div class="empty">Abriendo la caja ${esc(cod)}…</div>`); }
+  const ps=enCaja(c.codigo); const sec=SEC[c.seccion];
+  let h=`<button class="back" type="button" data-go="cajas">← Cajas</button>`;
+  h+=`<div class="head"><div class="boxtag" style="padding:10px 14px"><small>CAJA</small><span style="font-size:38px">${esc(c.codigo.replace(/^C/,""))}</span></div><div class="meta"><h2>${esc(c.nombre||"Sin nombre")}${c.ejemplo?'<span class="example">EJEMPLO</span>':""}</h2><p>${ps.length} ${ps.length===1?"prenda":"prendas"} adentro${c.lugar?" · Está en: "+esc(c.lugar):""}${sec?" · "+esc(sec.n):""}</p>${c.notas?`<p>${esc(c.notas)}</p>`:""}</div><div class="qrbox" data-qr="${esc(c.codigo)}" title="QR de esta caja"></div></div>`;
+  h+=`<div class="row"><button class="btn primary" type="button" data-new-box="${esc(c.codigo)}">+ Meter prenda</button><button class="btn" type="button" data-label="${esc(c.codigo)}">Descargar etiqueta QR</button><button class="btn" type="button" data-editbox="${esc(c.codigo)}">Editar caja</button></div>`;
+  h+= ps.length?`<div class="group-title">Contenido</div><div class="cards">${ps.map(p=>cardHTML(p,true)).join("")}</div>`:`<div class="empty">Esta caja está vacía. Toca “Meter prenda”.</div>`;
+  return h;
+}
+
+function wire(root){
+  root.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{S.q="";go(b.dataset.go)});
+  root.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openPrenda(S.prendas.get(b.dataset.edit)));
+  root.querySelectorAll("[data-new-sec]").forEach(b=>b.onclick=()=>openPrenda(null,{seccion:b.dataset.newSec}));
+  root.querySelectorAll("[data-new-box]").forEach(b=>b.onclick=()=>openPrenda(null,{ubicacion:"caja",caja:b.dataset.newBox,seccion:S.cajas.get(b.dataset.newBox.toLowerCase())?.seccion||""}));
+  root.querySelectorAll("[data-newbox]").forEach(b=>b.onclick=()=>openCaja(null));
+  root.querySelectorAll("[data-createbox]").forEach(b=>b.onclick=()=>openCaja(null,b.dataset.createbox));
+  root.querySelectorAll("[data-editbox]").forEach(b=>b.onclick=()=>openCaja(S.cajas.get(b.dataset.editbox.toLowerCase())));
+  root.querySelectorAll("[data-label]").forEach(b=>b.onclick=()=>saveLabel(S.cajas.get(b.dataset.label.toLowerCase())));
+  root.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>window.print());
+  root.querySelectorAll("[data-logout]").forEach(b=>b.onclick=async()=>{await sb.auth.signOut();location.hash="";showLogin()});
+  root.querySelectorAll("[data-ubi]").forEach(b=>b.onclick=()=>{S.ubiFilter=b.dataset.ubi;render()});
+  const q=root.querySelector("#q");
+  if(q){ q.oninput=()=>{S.q=q.value;const pos=q.selectionStart;render();const n=$("#q");n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}} }
+}
+
+// ====== QR ======
+function cajaURL(cod){return APP_URL+"#caja-"+cod.toLowerCase()}
+function qrMatrix(text){ if(typeof qrcode!=="function") return null; const q=qrcode(0,"M"); q.addData(text); q.make(); return q }
+function drawQR(ctx,text,x,y,size){
+  const q=qrMatrix(text); if(!q) return false; const n=q.getModuleCount(); const quiet=2; const cell=size/(n+quiet*2);
+  ctx.fillStyle="#fff"; ctx.fillRect(x,y,size,size); ctx.fillStyle="#000";
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(q.isDark(r,c)) ctx.fillRect(Math.floor(x+(c+quiet)*cell),Math.floor(y+(r+quiet)*cell),Math.ceil(cell),Math.ceil(cell));
+  return true;
+}
+function drawQRs(){
+  document.querySelectorAll("[data-qr]").forEach(el=>{
+    const cv=document.createElement("canvas"); cv.width=cv.height=480;
+    if(drawQR(cv.getContext("2d"),cajaURL(el.dataset.qr),0,0,480)){el.innerHTML="";el.appendChild(cv)}
+    else el.innerHTML='<div class="note" style="color:#333">QR no disponible</div>';
+  });
+}
+function labelCanvas(c){
+  const W=900,H=1200, cv=document.createElement("canvas"); cv.width=W; cv.height=H; const x=cv.getContext("2d");
+  x.fillStyle="#fff"; x.fillRect(0,0,W,H);
+  x.strokeStyle="#16233a"; x.lineWidth=6; x.setLineDash([22,14]); x.strokeRect(20,20,W-40,H-40); x.setLineDash([]);
+  x.fillStyle="#8a5a2b"; x.textAlign="center";
+  x.font="800 44px Nunito, sans-serif"; x.fillText("C A J A",W/2,120);
+  x.fillStyle="#16233a"; x.font="600 190px Fraunces, Georgia, serif"; x.fillText(c.codigo,W/2,300);
+  x.font="700 46px Nunito, sans-serif"; x.fillText((c.nombre||"").slice(0,30),W/2,380);
+  drawQR(x,cajaURL(c.codigo),170,420,560);
+  x.fillStyle="#5d6b80"; x.font="600 32px Nunito, sans-serif";
+  x.fillText("Escanea para ver qué hay adentro",W/2,1050);
+  if(c.lugar) x.fillText("Va en: "+c.lugar.slice(0,34),W/2,1100);
+  return cv;
+}
+async function saveLabel(c){
+  if(!c) return;
+  if(typeof qrcode!=="function"){toast("El generador de QR no cargó. Recarga la página.");return}
+  const cv=labelCanvas(c);
+  const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
+  const file=new File([blob],`etiqueta-caja-${c.codigo}.png`,{type:"image/png"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],title:"Etiqueta caja "+c.codigo}); return }catch(e){ if(e&&e.name==="AbortError") return } }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); toast("Etiqueta descargada")
+}
+function showLabel(cv,c){
+  const url=cv.toDataURL("image/png");
+  openSheet(`<h2>Etiqueta caja ${esc(c.codigo)}</h2><img src="${url}" alt="Etiqueta QR" style="width:100%;border-radius:12px;border:1px solid var(--line)"><p class="note">Mantén presionada la imagen para guardarla y luego imprímela.</p><div class="row"><button class="btn" type="button" data-close>Cerrar</button></div>`);
+}
+
+// ====== Hojas (formularios) ======
+function openSheet(html){
+  const L=$("#layer"); L.innerHTML=`<div class="sheet-bg"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  const bg=L.firstChild; bg.onclick=e=>{if(e.target===bg)closeSheet()};
+  L.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeSheet);
+  return L.querySelector(".sheet");
+}
+function closeSheet(){$("#layer").innerHTML=""}
+function armDelete(btn,fn){btn.onclick=()=>{ if(btn.classList.contains("armed")){fn()} else {btn.classList.add("armed");btn.textContent="Toca otra vez para borrar";setTimeout(()=>{btn.classList.remove("armed");btn.textContent=btn.dataset.label},3500)} }}
+
+function secOptions(sel){return `<option value="">— Elige sección —</option>`+SECCIONES.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(([id,n])=>`<option value="${id}" ${sel===id?"selected":""}>${esc(n)}</option>`).join("")}</optgroup>`).join("")}
+
+function openPrenda(p,preset={}){
+  const isNew=!p; const v=Object.assign({nombre:"",seccion:"",color:"",talla:"",marca:"",ubicacion:"closet",caja:"",notas:"",foto:""},preset,p||{});
+  const cs=cajasArr();
+  const el=openSheet(`<h2>${isNew?"Agregar prenda":"Editar prenda"}</h2>
+  <form id="fp" autocomplete="off">
+    <div class="f"><label for="p-nombre">QUÉ ES</label><input id="p-nombre" required placeholder="Ej. Sudadera gris Nike" value="${esc(v.nombre)}"></div>
+    <div class="f"><label for="p-sec">SECCIÓN</label><select id="p-sec" required>${secOptions(v.seccion)}</select></div>
+    <div class="two">
+      <div class="f"><label for="p-color">COLOR</label><input id="p-color" placeholder="Ej. negro" value="${esc(v.color)}"></div>
+      <div class="f"><label for="p-talla">TALLA</label><input id="p-talla" placeholder="Ej. M, 32" value="${esc(v.talla)}"></div>
+    </div>
+    <div class="f"><label for="p-marca">MARCA</label><input id="p-marca" value="${esc(v.marca)}"></div>
+    <div class="two">
+      <div class="f"><label for="p-ubi">DÓNDE ESTÁ</label><select id="p-ubi">${UBICACIONES.map(([k,n])=>`<option value="${k}" ${v.ubicacion===k?"selected":""}>${esc(n)}</option>`).join("")}</select></div>
+      <div class="f" id="p-caja-wrap"><label for="p-caja">CAJA</label><select id="p-caja">${cs.length?cs.map(c=>`<option value="${esc(c.codigo)}" ${v.caja===c.codigo?"selected":""}>Caja ${esc(c.codigo)} · ${esc(c.nombre||"")}</option>`).join(""):`<option value="">Primero crea una caja</option>`}</select></div>
+    </div>
+    <div class="f"><label for="p-notas">NOTAS</label><textarea id="p-notas" rows="2" placeholder="Ej. le falta un botón, es de mi hermano…">${esc(v.notas)}</textarea></div>
+    <div class="f"><label for="p-foto">FOTO (OPCIONAL)</label><div style="display:flex;gap:10px;align-items:center"><img id="p-prev" class="photo-prev" alt="" ${v.foto?`src="${esc(imgSrc(v.foto))}"`:"hidden"}><input id="p-foto" type="file" accept="image/*"></div><div class="note" id="p-foto-note" ${assets?"hidden":""}>Las fotos no están disponibles en esta vista.</div></div>
+    <div class="row"><button class="btn primary" type="submit" id="p-save">${isNew?"Guardar prenda":"Guardar cambios"}</button><button class="btn" type="button" data-close>Cancelar</button>${isNew?"":`<button class="btn danger" type="button" id="p-del" data-label="Borrar">Borrar</button>`}</div>
+  </form>`);
+  const ubi=el.querySelector("#p-ubi"), cw=el.querySelector("#p-caja-wrap");
+  const sync=()=>cw.hidden=ubi.value!=="caja"; ubi.onchange=sync; sync();
+  let newFile=null;
+  const fi=el.querySelector("#p-foto"); fi.disabled=!assets;
+  fi.onchange=()=>{newFile=fi.files[0]||null; const pv=el.querySelector("#p-prev"); if(newFile){pv.src=URL.createObjectURL(newFile);pv.hidden=false}};
+  if(!isNew) armDelete(el.querySelector("#p-del"),async()=>{try{await store.deletePrenda(p.id);closeSheet();toast("Prenda borrada")}catch(e){toast("No se pudo borrar. Intenta de nuevo.")}});
+  el.querySelector("#fp").onsubmit=async e=>{
+    e.preventDefault(); const btn=el.querySelector("#p-save"); btn.disabled=true; btn.textContent="Guardando…";
+    const data={
+      nombre:el.querySelector("#p-nombre").value.trim(), seccion:el.querySelector("#p-sec").value,
+      color:el.querySelector("#p-color").value.trim(), talla:el.querySelector("#p-talla").value.trim(), marca:el.querySelector("#p-marca").value.trim(),
+      ubicacion:ubi.value, caja:ubi.value==="caja"?el.querySelector("#p-caja").value:"", notas:el.querySelector("#p-notas").value.trim(),
+      foto:v.foto||"", actualizado:new Date().toISOString()
+    };
+    if(data.ubicacion==="caja"&&!data.caja){toast("Crea una caja primero (pestaña Cajas).");btn.disabled=false;btn.textContent="Guardar";return}
+    try{
+      if(newFile){ const small=await shrink(newFile); data.foto=await store.uploadFoto(small) }
+      await store.savePrenda(isNew?null:p.id, data);
+      closeSheet(); toast(isNew?"Prenda guardada":"Cambios guardados");
+    }catch(err){ btn.disabled=false; btn.textContent="Guardar"; toast(err&&err.code==="quota_exceeded"?"Se llenó el espacio. Borra algunas fotos o prendas.":"No se pudo guardar. Revisa tu conexión e intenta otra vez.") }
+  };
+}
+function stripId(o){const c=Object.assign({},o);delete c.id;return c}
+async function shrink(file){
+  try{ const bmp=await createImageBitmap(file); const m=900, k=Math.min(1,m/Math.max(bmp.width,bmp.height));
+    const cv=document.createElement("canvas"); cv.width=Math.round(bmp.width*k); cv.height=Math.round(bmp.height*k);
+    cv.getContext("2d").drawImage(bmp,0,0,cv.width,cv.height); return await new Promise(r=>cv.toBlob(b=>r(b||file),"image/jpeg",.82)) }
+  catch(e){ return file }
+}
+function nextCode(){let max=0;S.cajas.forEach(c=>{const n=parseInt(c.codigo.replace(/\D/g,""),10);if(n>max)max=n});return "C"+String(max+1).padStart(2,"0")}
+function openCaja(c,codigo){
+  const isNew=!c; const v=Object.assign({codigo:(codigo&&/^C\d{1,3}$/.test(codigo))?codigo:nextCode(),nombre:"",lugar:"",seccion:"",notas:""},c||{});
+  const n=c?enCaja(c.codigo).length:0;
+  const el=openSheet(`<h2>${isNew?"Nueva caja":"Editar caja "+esc(v.codigo)}</h2>
+  <form id="fc" autocomplete="off">
+    ${isNew?`<p class="note" style="margin-top:-6px">Se llamará <b>Caja ${esc(v.codigo)}</b>. Escribe ese número en la caja o pega su etiqueta QR.</p>`:""}
+    <div class="f"><label for="c-nombre">QUÉ GUARDA</label><input id="c-nombre" required placeholder="Ej. Ropa de invierno" value="${esc(v.nombre)}"></div>
+    <div class="f"><label for="c-lugar">DÓNDE ESTÁ LA CAJA</label><input id="c-lugar" placeholder="Ej. Arriba del closet, bajo la cama" value="${esc(v.lugar)}"></div>
+    <div class="f"><label for="c-sec">SECCIÓN PRINCIPAL (OPCIONAL)</label><select id="c-sec">${secOptions(v.seccion)}</select></div>
+    <div class="f"><label for="c-notas">NOTAS</label><textarea id="c-notas" rows="2">${esc(v.notas)}</textarea></div>
+    <div class="row"><button class="btn primary" type="submit" id="c-save">${isNew?"Crear caja":"Guardar"}</button><button class="btn" type="button" data-close>Cancelar</button>${isNew?"":`<button class="btn danger" type="button" id="c-del" data-label="Borrar caja">Borrar caja</button>`}</div>
+    ${!isNew&&n?`<p class="note">Si borras la caja, sus ${n} prendas pasan a “Closet”.</p>`:""}
+  </form>`);
+  if(!isNew) armDelete(el.querySelector("#c-del"),async()=>{
+    try{ for(const p of enCaja(c.codigo)){ await store.savePrenda(p.id,{ubicacion:"closet",caja:null}) }
+      await store.deleteCaja(c.codigo); closeSheet(); toast("Caja borrada"); go("cajas") }
+    catch(e){ toast("No se pudo borrar. Intenta de nuevo.") }
+  });
+  el.querySelector("#fc").onsubmit=async e=>{
+    e.preventDefault(); const btn=el.querySelector("#c-save"); btn.disabled=true;
+    const data=Object.assign({},isNew?{}:stripId(c),{codigo:v.codigo,nombre:el.querySelector("#c-nombre").value.trim(),lugar:el.querySelector("#c-lugar").value.trim(),seccion:el.querySelector("#c-sec").value,notas:el.querySelector("#c-notas").value.trim()});
+    try{ await store.saveCaja(v.codigo,data); closeSheet(); toast(isNew?"Caja "+v.codigo+" creada":"Caja guardada"); go("caja-"+v.codigo.toLowerCase()) }
+    catch(err){ btn.disabled=false; toast("No se pudo guardar. Intenta otra vez.") }
+  };
+}
+
+$("#fab").onclick=()=>{
+  const r=route();
+  if(r.startsWith("caja-")&&S.cajas.get(r.slice(5))) return openPrenda(null,{ubicacion:"caja",caja:S.cajas.get(r.slice(5)).codigo});
+  if(r.startsWith("seccion-")) return openPrenda(null,{seccion:r.slice(8)});
+  if(r==="cajas") return openCaja(null);
+  openPrenda(null);
+};
+
+// ====== Arranque ======
+(async function start(){
+  render();
+  if(!window.supabase||!window.MI_CLOSET||!/^https:/.test(window.MI_CLOSET.supabaseUrl||"")){ $("#app").innerHTML='<div class="top"><h1>Mi <em>Closet</em></h1></div><div class="empty">Falta configurar la conexión a Supabase en config.js.</div>'; $("#fab").hidden=true; return }
+  sb=window.supabase.createClient(window.MI_CLOSET.supabaseUrl, window.MI_CLOSET.supabaseKey, {auth:{persistSession:true,autoRefreshToken:true}});
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session) return showLogin();
+  boot();
+})();
+async function boot(){
+  $("#fab").hidden=false;
+  try{ await store.reload() }catch(e){ const s=$("#status"); if(s) s.textContent="No se pudieron cargar los datos"; console.error(e) }
+  document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") store.reload().catch(()=>{}) });
+}
+function showLogin(){
+  $("#fab").hidden=true;
+  $("#app").innerHTML=`<div class="top"><h1>Mi <em>Closet</em></h1></div><form class="login" id="fl"><p style="color:var(--muted)">Entra con tu correo y contraseña para ver tu ropa.</p><div class="f"><label for="l-email">CORREO</label><input id="l-email" type="email" autocomplete="username" required></div><div class="f"><label for="l-pass">CONTRASEÑA</label><input id="l-pass" type="password" autocomplete="current-password" required></div><button class="btn primary" type="submit" style="width:100%">Entrar</button><div class="err" id="l-err" hidden></div></form>`;
+  $("#fl").onsubmit=async e=>{ e.preventDefault(); const er=$("#l-err"); er.hidden=true;
+    const {error}=await sb.auth.signInWithPassword({email:$("#l-email").value.trim(),password:$("#l-pass").value});
+    if(error){ er.textContent="Correo o contraseña incorrectos."; er.hidden=false; return }
+    render(); boot(); };
+}
+let pending=false;
+new MutationObserver(()=>{ if(pending&&!$("#layer").innerHTML){pending=false;render()} }).observe(document.getElementById("layer"),{childList:true});
+// Respaldo si el CDN principal del QR no carga
+
+</script>
+</body>
+</html>
