@@ -169,6 +169,13 @@ button{cursor:pointer}
   .card .badge .boxtag span{font-size:13px}
   .card .badge .pill{font-size:8px;padding:2px 5px}
 }
+.filtros{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.filtros .chips{margin-top:0}
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.fsel{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 130px;max-width:220px}
+.fsel span{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fsel select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 10px;width:100%}
+@media (max-width:700px){.fsel{flex:1 1 calc(50% - 5px);max-width:none}.filtros .chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.chip{white-space:nowrap}}
 </style>
 </head>
 <body>
@@ -237,7 +244,7 @@ const store={
     const r=await sb.storage.from("fotos").upload(path,blob,{contentType:blob.type||"image/jpeg"}); if(r.error) throw r.error; return path }
 };
 function clean(r){const o={};for(const k in r){o[k]=r[k]==null?"":r[k]}return o}
-const S = { prendas:new Map(), cajas:new Map(), loaded:{p:false,c:false}, q:"", tab:"secciones", ubiFilter:"" };
+const S = { prendas:new Map(), cajas:new Map(), loaded:{p:false,c:false}, q:"", tab:"secciones", ubiFilter:"", secFilter:"", fil:{sec:"",ubi:"",color:"",talla:"",marca:"",orden:"nombre"} };
 const $ = s=>document.querySelector(s);
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const norm = s=>String(s??"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
@@ -313,9 +320,10 @@ function viewHome(tab){
     h+=`<div class="row"><button class="btn primary" type="button" data-newbox>+ Nueva caja</button>${cs.length?`<button class="btn" type="button" data-go="etiquetas">Imprimir etiquetas QR</button>`:""}<button class="btn" type="button" data-logout>Cerrar sesión</button></div>`;
     h+= cs.length?`<div class="list">${cs.map(boxCardHTML).join("")}</div>`:`<div class="empty">Aún no tienes cajas. Crea una, imprime su QR y pégalo en la caja.</div>`;
   } else {
-    h+=`<div class="chips">${[["","Todas"],...UBICACIONES].map(([k,n])=>`<button class="chip" type="button" data-ubi="${k}" aria-pressed="${S.ubiFilter===k}">${esc(n)}</button>`).join("")}</div>`;
-    const ps=prendasArr().filter(p=>!S.ubiFilter||p.ubicacion===S.ubiFilter);
-    h+= ps.length?`<div class="cards">${ps.map(p=>cardHTML(p)).join("")}</div>`:`<div class="empty">Nada por aquí todavía.</div>`;
+    resetFil("todo"); const all=prendasArr();
+    if(all.length) h+=filtrosHTML(all,true);
+    const ps=aplicarFiltros(all);
+    h+= ps.length?`<div class="cards">${ps.map(p=>cardHTML(p)).join("")}</div>`:(all.length?`<div class="empty">Ninguna prenda coincide con estos filtros.</div>`:`<div class="empty">Nada por aquí todavía.</div>`);
   }
   return h;
 }
@@ -342,6 +350,28 @@ async function subirFondo(id,f){
   catch(e){ console.error(e); toastLong("No se pudo subir la imagen: "+((e&&(e.message||e.error))||"error desconocido")) }
 }
 function toastLong(msg){const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),7000)}
+function filtrosHTML(ps,showSec){
+  const F=S.fil; const uniq=k=>[...new Set(ps.map(p=>(p[k]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
+  const sel=(k,label,opts)=>opts.length?`<label class="fsel"><span>${label}</span><select data-fil="${k}"><option value="">Todos</option>${opts.map(o=>`<option ${norm(F[k])===norm(o)?"selected":""}>${esc(o)}</option>`).join("")}</select></label>`:"";
+  const activos=["sec","ubi","color","talla","marca"].filter(k=>F[k]).length;
+  return `<div class="filtros">
+    <div class="chips">${[["","Todas"],...UBICACIONES].map(([k,n])=>`<button class="chip" type="button" data-fil-ubi="${k}" aria-pressed="${F.ubi===k}">${esc(n)}</button>`).join("")}</div>
+    <div class="frow">
+      ${showSec?`<label class="fsel"><span>Sección</span><select data-fil="sec"><option value="">Todas</option>${Object.values(SEC).map(x=>`<option value="${x.id}" ${F.sec===x.id?"selected":""}>${esc(x.n)}</option>`).join("")}</select></label>`:""}
+      ${sel("color","Color",uniq("color"))}${sel("talla","Talla",uniq("talla"))}${sel("marca","Marca",uniq("marca"))}
+      <label class="fsel"><span>Ordenar</span><select data-fil="orden"><option value="nombre" ${F.orden==="nombre"?"selected":""}>Nombre A–Z</option><option value="nuevo" ${F.orden==="nuevo"?"selected":""}>Más nuevas</option><option value="color" ${F.orden==="color"?"selected":""}>Color</option></select></label>
+      ${activos?`<button class="btn" type="button" data-fil-clear>Quitar filtros (${activos})</button>`:""}
+    </div></div>`;
+}
+function aplicarFiltros(ps){
+  const F=S.fil;
+  let r=ps.filter(p=>(!F.sec||p.seccion===F.sec)&&(!F.ubi||p.ubicacion===F.ubi)&&(!F.color||norm(p.color)===norm(F.color))&&(!F.talla||norm(p.talla)===norm(F.talla))&&(!F.marca||norm(p.marca)===norm(F.marca)));
+  if(F.orden==="nuevo") r=r.slice().sort((a,b)=>String(b.creado||"").localeCompare(String(a.creado||"")));
+  else if(F.orden==="color") r=r.slice().sort((a,b)=>norm(a.color).localeCompare(norm(b.color))||norm(a.nombre).localeCompare(norm(b.nombre)));
+  return r;
+}
+let filCtx="";
+function resetFil(ctx){ if(filCtx!==ctx){ filCtx=ctx; S.fil={sec:"",ubi:"",color:"",talla:"",marca:"",orden:S.fil.orden||"nombre"} } }
 function viewSeccion(id){
   const sec=SEC[id]; if(!sec) return `<button class="back" data-go="">← Inicio</button><div class="empty">Esa sección no existe.</div>`;
   const ps=prendasArr().filter(p=>p.seccion===id);
@@ -349,6 +379,15 @@ function viewSeccion(id){
   let h=`<button class="back" type="button" data-go="">← Secciones</button>`+bannerHTML(sec,true);
   h+=`<div class="row"><button class="btn primary" type="button" data-new-sec="${id}">+ Agregar a ${esc(sec.n)}</button></div>`;
   if(!ps.length) return h+`<div class="empty">Todavía no hay prendas en esta sección.</div>`;
+  resetFil("sec-"+id);
+  h+=filtrosHTML(ps,false);
+  const fps=aplicarFiltros(ps);
+  if(!fps.length) return h+`<div class="empty">Ninguna prenda coincide con estos filtros.</div>`;
+  if(fps.length!==ps.length) h+=`<div class="note">Mostrando ${fps.length} de ${ps.length} prendas</div>`;
+  return h+(()=>{let x="";const fuera=fps.filter(p=>p.ubicacion!=="caja"), dentro=fps.filter(p=>p.ubicacion==="caja");
+  if(fuera.length) x+=`<div class="group-title">A la mano</div><div class="cards">${fuera.map(p=>cardHTML(p)).join("")}</div>`;
+  if(dentro.length) x+=`<div class="group-title">Guardadas en cajas</div><div class="cards">${dentro.map(p=>cardHTML(p)).join("")}</div>`;
+  return x})();
   if(fuera.length) h+=`<div class="group-title">A la mano</div><div class="cards">${fuera.map(p=>cardHTML(p)).join("")}</div>`;
   if(dentro.length) h+=`<div class="group-title">Guardadas en cajas</div><div class="cards">${dentro.map(p=>cardHTML(p)).join("")}</div>`;
   return h;
@@ -379,6 +418,9 @@ function wire(root){
   root.querySelectorAll("[data-label]").forEach(b=>b.onclick=()=>saveLabel(S.cajas.get(b.dataset.label.toLowerCase())));
   root.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>window.print());
   root.querySelectorAll("[data-logout]").forEach(b=>b.onclick=async()=>{await sb.auth.signOut();location.hash="";showLogin()});
+  root.querySelectorAll("[data-fil-ubi]").forEach(b=>b.onclick=()=>{S.fil.ubi=b.dataset.filUbi;render()});
+  root.querySelectorAll("select[data-fil]").forEach(sl=>sl.onchange=()=>{S.fil[sl.dataset.fil]=sl.value;render()});
+  root.querySelectorAll("[data-fil-clear]").forEach(b=>b.onclick=()=>{Object.assign(S.fil,{sec:"",ubi:"",color:"",talla:"",marca:""});render()});
   root.querySelectorAll("[data-ubi]").forEach(b=>b.onclick=()=>{S.ubiFilter=b.dataset.ubi;render()});
   const q=root.querySelector("#q");
   if(q){ q.oninput=()=>{S.q=q.value;const pos=q.selectionStart;render();const n=$("#q");n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}} }
