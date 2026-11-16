@@ -8,7 +8,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Mi Closet</title>
+<title>Guille’s Closet</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,600&family=Nunito:wght@400;600;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
@@ -38,9 +38,9 @@ img{max-width:100%}
 body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .login{max-width:380px;margin:40px auto 0}
 .err{color:var(--danger);font-size:14px;margin-top:8px}
-@media print{.fab,.noprint,.back,.top{display:none!important}body{background:#fff}.labels{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.labels img{width:100%;break-inside:avoid}}
+@media print{.fab,.noprint,.back,.brand{display:none!important}body{background:#fff}.labels{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.labels img{width:100%;break-inside:avoid}}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
-.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 110px}
+.wrap{max-width:1600px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 110px}
 h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance}
 h1{font-size:30px;letter-spacing:-.01em}
 h1 em{color:var(--accent);font-style:italic}
@@ -57,6 +57,21 @@ button{cursor:pointer}
 .tab[aria-current="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .stats{display:flex;gap:18px;margin:16px 2px 4px;color:var(--muted);font-size:13px;flex-wrap:wrap}
 .stats b{color:var(--ink);font-size:17px;font-variant-numeric:tabular-nums;margin-right:4px}
+.brand{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:clamp(10px,3vw,36px) clamp(6px,2vw,20px);border-bottom:1px solid var(--line);margin-bottom:6px}
+.brand h1{font-size:clamp(40px,9vw,104px);line-height:.95;letter-spacing:-.02em}
+.banners{display:flex;flex-direction:column;gap:clamp(10px,1.6vw,18px);margin-top:16px}
+.banner{position:relative;display:block;width:100%;min-height:clamp(150px,24vw,280px);border-radius:clamp(14px,2vw,24px);overflow:hidden;border:0;padding:0;text-align:left;color:#fff;background:var(--sc,#333);isolation:isolate}
+.banner .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform .5s ease}
+.banner::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,12,20,.72) 0%,rgba(8,12,20,.35) 55%,rgba(8,12,20,.05) 100%)}
+.banner.noimg{background:linear-gradient(120deg,var(--sc) 0%,color-mix(in srgb,var(--sc) 55%,#000) 100%)}
+.banner.noimg::after{background:radial-gradient(circle at 85% 30%,rgba(255,255,255,.18),transparent 55%)}
+.banner .in{position:absolute;left:clamp(18px,3vw,44px);bottom:clamp(16px,2.6vw,36px);right:120px}
+.banner .nm{font-family:var(--display);font-weight:600;font-size:clamp(34px,6.4vw,84px);line-height:.95;letter-spacing:-.01em;text-shadow:0 2px 18px rgba(0,0,0,.35)}
+.banner .ct{margin-top:8px;font-weight:700;font-size:clamp(13px,1.4vw,17px);opacity:.92}
+.banner .ph-btn{position:absolute;top:clamp(10px,1.4vw,18px);right:clamp(10px,1.4vw,18px);background:rgba(255,255,255,.9);color:#16233a;border:0;border-radius:999px;padding:8px 13px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px}
+.banner .go{position:absolute;right:clamp(18px,3vw,44px);bottom:clamp(16px,2.6vw,36px);font-weight:800;font-size:clamp(13px,1.4vw,16px);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:8px 14px;backdrop-filter:blur(4px)}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){.banner:hover .bg{transform:scale(1.04)}}
+.hero{min-height:clamp(140px,20vw,240px);cursor:default}
 .group-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:22px 2px 8px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .sec{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;min-height:74px}
@@ -125,7 +140,7 @@ button{cursor:pointer}
 <body>
 
 <div class="wrap" id="app">
-  <div class="top"><h1>Mi <em>Closet</em></h1><span class="status" id="status">Cargando tu ropa…</span></div>
+  <header class="brand"><h1>Guille’s <em>Closet</em></h1><span class="status" id="status">Cargando tu ropa…</span></header>
   <div class="empty" style="margin-top:20px">Aquí aparecerán tus secciones (gimnasio, calor, invierno…) y tus cajas con su QR. Toca <b>+ Agregar</b> para registrar la primera prenda.</div>
 </div>
 <button class="fab" id="fab" type="button">+ Agregar</button>
@@ -136,36 +151,19 @@ button{cursor:pointer}
 const APP_URL = location.origin + location.pathname; // los QR apuntan aquí + #caja-c01
 
 const SECCIONES = [
-  ["Por clima", [
-    ["calor","Calor / verano","#e0892b"],
-    ["invierno","Invierno / frío","#3f7cc4"],
-    ["entretiempo","Entretiempo","#7a8f3a"],
-    ["lluvia","Lluvia","#4c8c9c"],
-    ["abrigos","Chamarras y abrigos","#5b5f8f"],
-  ]],
-  ["Por ocasión", [
-    ["casual","Casual diario","#2f8a6a"],
-    ["formal","Formal / oficina","#2c3e66"],
-    ["trajes","Trajes y eventos","#6b3fa0"],
-    ["fiesta","Salir / fiesta","#c0407a"],
-    ["trabajo","Trabajo / uniforme","#6d6d6d"],
-    ["viaje","Viaje","#2a8fb8"],
-  ]],
-  ["Deporte y casa", [
-    ["gimnasio","Gimnasio y deporte","#d4502e"],
-    ["playa","Traje de baño / playa","#1aa3a3"],
-    ["casa","Casa / descanso","#9a7b4f"],
+  ["", [
+    ["verano","Verano","#e0892b"],
+    ["invierno","Invierno","#3f7cc4"],
+    ["abrigos","Abrigos","#5b5f8f"],
+    ["chamarras","Chamarras","#7a4b2c"],
+    ["formal","Formal","#2c3e66"],
+    ["casual","Casual","#2f8a6a"],
+    ["fiesta","Vestidos de fiesta","#c0407a"],
     ["pijamas","Pijamas","#7d6bc4"],
-  ]],
-  ["Básicos", [
+    ["gimnasio","Gimnasio","#d4502e"],
+    ["playa","Trajes de baño","#1aa3a3"],
     ["interior","Ropa interior","#b0577a"],
     ["calcetines","Calcetines","#58799b"],
-    ["accesorios","Accesorios","#a8862a"],
-    ["calzado","Calzado","#7a4b2c"],
-  ]],
-  ["Pendientes", [
-    ["reparar","Por reparar / ajustar","#b3481e"],
-    ["donar","Para donar o vender","#738065"],
   ]],
 ];
 const SEC = {}; SECCIONES.forEach(([g,l])=>l.forEach(([id,n,c])=>SEC[id]={id,n,c,g}));
@@ -183,6 +181,12 @@ const store={
     S.cajas=new Map(c.data.map(r=>[r.codigo.toLowerCase(),Object.assign(clean(r),{id:r.codigo.toLowerCase()})]));
     const need=p.data.map(r=>r.foto).filter(f=>f&&!urlCache.has(f));
     if(need.length){ const {data}=await sb.storage.from("fotos").createSignedUrls(need,60*60*24*7); (data||[]).forEach(d=>{if(d.signedUrl)urlCache.set(d.path,d.signedUrl)}) }
+    try{ const {data:fl}=await sb.storage.from("fotos").list("fondos",{limit:200,sortBy:{column:"name",order:"desc"}});
+      const latest={}; (fl||[]).forEach(f=>{const id=f.name.split("-")[0]; if(!latest[id]) latest[id]="fondos/"+f.name});
+      const paths=Object.values(latest).filter(p=>!urlCache.has(p));
+      if(paths.length){ const {data}=await sb.storage.from("fotos").createSignedUrls(paths,60*60*24*7); (data||[]).forEach(d=>{if(d.signedUrl)urlCache.set(d.path,d.signedUrl)}) }
+      S.fondos=latest; S.fondosAll=(fl||[]).map(f=>"fondos/"+f.name);
+    }catch(e){ S.fondos=S.fondos||{} }
     S.loaded.p=S.loaded.c=true;
     if(!$("#layer").innerHTML) render(); else pending=true;
   },
@@ -191,6 +195,10 @@ const store={
   async deletePrenda(id){ const r=await sb.from("prendas").delete().eq("id",id); if(r.error) throw r.error; await store.reload() },
   async saveCaja(codigo,data){ data=Object.assign({},data); delete data.id; if(!data.creado) delete data.creado; data.codigo=codigo; const r=await sb.from("cajas").upsert(data); if(r.error) throw r.error; await store.reload() },
   async deleteCaja(codigo){ const r=await sb.from("cajas").delete().eq("codigo",codigo); if(r.error) throw r.error; await store.reload() },
+  async setFondo(id,blob){ const path="fondos/"+id+"-"+Date.now()+".jpg";
+    const r=await sb.storage.from("fotos").upload(path,blob,{contentType:"image/jpeg"}); if(r.error) throw r.error;
+    const old=(S.fondosAll||[]).filter(p=>p.startsWith("fondos/"+id+"-")); if(old.length) await sb.storage.from("fotos").remove(old);
+    await store.reload() },
   async uploadFoto(blob){ const path=(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2))+".jpg";
     const r=await sb.storage.from("fotos").upload(path,blob,{contentType:blob.type||"image/jpeg"}); if(r.error) throw r.error; return path }
 };
@@ -248,7 +256,7 @@ function render(){
   else if(r.startsWith("caja-")) body=viewCaja(r.slice(5).toUpperCase());
   else if(r.startsWith("seccion-")) body=viewSeccion(r.slice(8));
   else body=viewHome(r==="cajas"?"cajas":r==="todo"?"todo":"secciones");
-  app.innerHTML=`<div class="top"><h1>Mi <em>Closet</em></h1><span class="status" id="status">${loaded?"":"Cargando…"}</span></div>`+body;
+  app.innerHTML=`<header class="brand"><h1>Guille’s <em>Closet</em></h1><span class="status" id="status">${loaded?"":"Cargando…"}</span></header>`+body;
   wire(app);
   drawQRs();
 }
@@ -265,9 +273,7 @@ function viewHome(tab){
   h+=`<div class="tabs" role="tablist">${[["secciones","Secciones"],["cajas","Cajas"],["todo","Toda la ropa"]].map(([k,n])=>`<button class="tab" type="button" data-go="${k==="secciones"?"":k}" aria-current="${tab===k}">${n}</button>`).join("")}</div>`;
   h+=`<div class="stats"><span><b>${tP}</b>prendas</span><span><b>${tC}</b>cajas</span><span><b>${tEnCaja}</b>guardadas en caja</span></div>`;
   if(tab==="secciones"){
-    SECCIONES.forEach(([g,l])=>{
-      h+=`<div class="group-title">${esc(g)}</div><div class="grid">`+l.map(([id,n,c])=>{const k=countSec(id);return `<button class="sec" type="button" data-go="seccion-${id}"><span class="sw" style="background:${c}"></span><span class="n">${esc(n)}</span><span class="c ${k?"":"zero"}">${k} ${k===1?"prenda":"prendas"}</span></button>`}).join("")+`</div>`;
-    });
+    h+=`<div class="banners">`+Object.values(SEC).map(sec=>bannerHTML(sec,false)).join("")+`</div>`;
   } else if(tab==="cajas"){
     const cs=cajasArr();
     h+=`<div class="row"><button class="btn primary" type="button" data-newbox>+ Nueva caja</button>${cs.length?`<button class="btn" type="button" data-go="etiquetas">Imprimir etiquetas QR</button>`:""}<button class="btn" type="button" data-logout>Cerrar sesión</button></div>`;
@@ -286,11 +292,27 @@ function viewEtiquetas(){
   if(typeof qrcode!=="function") return h+`<div class="empty">El generador de QR no cargó. Recarga la página.</div>`;
   return h+`<div class="labels cards" style="margin-top:14px">${cs.map(c=>`<img alt="Etiqueta caja ${esc(c.codigo)}" src="${labelCanvas(c).toDataURL("image/png")}" style="width:100%;border-radius:8px;border:1px solid var(--line);background:#fff">`).join("")}</div>`;
 }
+function fondoURL(id){const p=(S.fondos||{})[id];return p?urlCache.get(p)||"":""}
+function bannerHTML(sec,hero){
+  const k=countSec(sec.id); let enc=0; S.prendas.forEach(p=>{if(p.seccion===sec.id&&p.ubicacion==="caja")enc++});
+  const u=fondoURL(sec.id);
+  const tag=hero?"div":"div";
+  return `<div class="banner ${u?"":"noimg"} ${hero?"hero":""}" style="--sc:${sec.c}" ${hero?"":`role="link" tabindex="0" data-go="seccion-${sec.id}"`}>${u?`<img class="bg" src="${esc(u)}" alt="">`:""}
+    <div class="in"><div class="nm">${esc(sec.n)}</div><div class="ct">${k} ${k===1?"prenda":"prendas"}${enc?` · ${enc} en cajas`:""}</div></div>
+    <button class="ph-btn" type="button" data-fondo="${sec.id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>${u?"Cambiar fondo":"Poner fondo"}</button>
+    ${hero?"":`<span class="go">Ver →</span>`}</div>`;
+}
+function pickFondo(id){
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+  inp.onchange=async()=>{ const f=inp.files[0]; if(!f) return; toast("Subiendo fondo…");
+    try{ const b=await shrink(f,1800); await store.setFondo(id,b); toast("Fondo listo") }catch(e){ toast("No se pudo subir la imagen. Intenta otra vez.") } };
+  inp.click();
+}
 function viewSeccion(id){
   const sec=SEC[id]; if(!sec) return `<button class="back" data-go="">← Inicio</button><div class="empty">Esa sección no existe.</div>`;
   const ps=prendasArr().filter(p=>p.seccion===id);
   const fuera=ps.filter(p=>p.ubicacion!=="caja"), dentro=ps.filter(p=>p.ubicacion==="caja");
-  let h=`<button class="back" type="button" data-go="">← Secciones</button><div class="head"><div class="meta"><span class="pill" style="background:${sec.c};color:#fff">${esc(sec.g)}</span><h2 style="margin-top:6px">${esc(sec.n)}</h2><p>${ps.length} ${ps.length===1?"prenda":"prendas"}</p></div></div>`;
+  let h=`<button class="back" type="button" data-go="">← Secciones</button>`+bannerHTML(sec,true);
   h+=`<div class="row"><button class="btn primary" type="button" data-new-sec="${id}">+ Agregar a ${esc(sec.n)}</button></div>`;
   if(!ps.length) return h+`<div class="empty">Todavía no hay prendas en esta sección.</div>`;
   if(fuera.length) h+=`<div class="group-title">A la mano</div><div class="cards">${fuera.map(p=>cardHTML(p)).join("")}</div>`;
@@ -310,7 +332,8 @@ function viewCaja(cod){
 }
 
 function wire(root){
-  root.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{S.q="";go(b.dataset.go)});
+  root.querySelectorAll("[data-go]").forEach(b=>{b.onclick=()=>{S.q="";go(b.dataset.go)}; if(b.classList.contains("banner")) b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();b.click()}}});
+  root.querySelectorAll("[data-fondo]").forEach(b=>b.onclick=e=>{e.stopPropagation();pickFondo(b.dataset.fondo)});
   root.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openPrenda(S.prendas.get(b.dataset.edit)));
   root.querySelectorAll("[data-new-sec]").forEach(b=>b.onclick=()=>openPrenda(null,{seccion:b.dataset.newSec}));
   root.querySelectorAll("[data-new-box]").forEach(b=>b.onclick=()=>openPrenda(null,{ubicacion:"caja",caja:b.dataset.newBox,seccion:S.cajas.get(b.dataset.newBox.toLowerCase())?.seccion||""}));
@@ -379,7 +402,7 @@ function openSheet(html){
 function closeSheet(){$("#layer").innerHTML=""}
 function armDelete(btn,fn){btn.onclick=()=>{ if(btn.classList.contains("armed")){fn()} else {btn.classList.add("armed");btn.textContent="Toca otra vez para borrar";setTimeout(()=>{btn.classList.remove("armed");btn.textContent=btn.dataset.label},3500)} }}
 
-function secOptions(sel){return `<option value="">— Elige sección —</option>`+SECCIONES.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(([id,n])=>`<option value="${id}" ${sel===id?"selected":""}>${esc(n)}</option>`).join("")}</optgroup>`).join("")}
+function secOptions(sel){return `<option value="">— Elige sección —</option>`+Object.values(SEC).map(x=>`<option value="${x.id}" ${sel===x.id?"selected":""}>${esc(x.n)}</option>`).join("")}
 
 function openPrenda(p,preset={}){
   const isNew=!p; const v=Object.assign({nombre:"",seccion:"",color:"",talla:"",marca:"",ubicacion:"closet",caja:"",notas:"",foto:""},preset,p||{});
@@ -424,8 +447,8 @@ function openPrenda(p,preset={}){
   };
 }
 function stripId(o){const c=Object.assign({},o);delete c.id;return c}
-async function shrink(file){
-  try{ const bmp=await createImageBitmap(file); const m=900, k=Math.min(1,m/Math.max(bmp.width,bmp.height));
+async function shrink(file,maxSide){
+  try{ const bmp=await createImageBitmap(file); const m=maxSide||900, k=Math.min(1,m/Math.max(bmp.width,bmp.height));
     const cv=document.createElement("canvas"); cv.width=Math.round(bmp.width*k); cv.height=Math.round(bmp.height*k);
     cv.getContext("2d").drawImage(bmp,0,0,cv.width,cv.height); return await new Promise(r=>cv.toBlob(b=>r(b||file),"image/jpeg",.82)) }
   catch(e){ return file }
@@ -468,7 +491,7 @@ $("#fab").onclick=()=>{
 // ====== Arranque ======
 (async function start(){
   render();
-  if(!window.supabase||!window.MI_CLOSET||!/^https:/.test(window.MI_CLOSET.supabaseUrl||"")){ $("#app").innerHTML='<div class="top"><h1>Mi <em>Closet</em></h1></div><div class="empty">Falta configurar la conexión a Supabase en config.js.</div>'; $("#fab").hidden=true; return }
+  if(!window.supabase||!window.MI_CLOSET||!/^https:/.test(window.MI_CLOSET.supabaseUrl||"")){ $("#app").innerHTML='<header class="brand"><h1>Guille’s <em>Closet</em></h1></header><div class="empty">Falta configurar la conexión a Supabase en config.js.</div>'; $("#fab").hidden=true; return }
   sb=window.supabase.createClient(window.MI_CLOSET.supabaseUrl, window.MI_CLOSET.supabaseKey, {auth:{persistSession:true,autoRefreshToken:true}});
   const {data:{session}}=await sb.auth.getSession();
   if(!session) return showLogin();
@@ -481,7 +504,7 @@ async function boot(){
 }
 function showLogin(){
   $("#fab").hidden=true;
-  $("#app").innerHTML=`<div class="top"><h1>Mi <em>Closet</em></h1></div><form class="login" id="fl"><p style="color:var(--muted)">Entra con tu correo y contraseña para ver tu ropa.</p><div class="f"><label for="l-email">CORREO</label><input id="l-email" type="email" autocomplete="username" required></div><div class="f"><label for="l-pass">CONTRASEÑA</label><input id="l-pass" type="password" autocomplete="current-password" required></div><button class="btn primary" type="submit" style="width:100%">Entrar</button><div class="err" id="l-err" hidden></div></form>`;
+  $("#app").innerHTML=`<header class="brand"><h1>Guille’s <em>Closet</em></h1></header><form class="login" id="fl"><p style="color:var(--muted)">Entra con tu correo y contraseña para ver tu ropa.</p><div class="f"><label for="l-email">CORREO</label><input id="l-email" type="email" autocomplete="username" required></div><div class="f"><label for="l-pass">CONTRASEÑA</label><input id="l-pass" type="password" autocomplete="current-password" required></div><button class="btn primary" type="submit" style="width:100%">Entrar</button><div class="err" id="l-err" hidden></div></form>`;
   $("#fl").onsubmit=async e=>{ e.preventDefault(); const er=$("#l-err"); er.hidden=true;
     const {error}=await sb.auth.signInWithPassword({email:$("#l-email").value.trim(),password:$("#l-pass").value});
     if(error){ er.textContent="Correo o contraseña incorrectos."; er.hidden=false; return }
