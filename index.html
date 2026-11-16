@@ -135,6 +135,23 @@ button{cursor:pointer}
 .example{font-size:10px;font-weight:800;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 5px;margin-left:6px;vertical-align:2px}
 @media (max-width:420px){h1{font-size:26px}.two{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
+
+/* Tarjetas grandes con texto sobre la foto, sin marco */
+.cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:14px}
+.card{border:0!important;background:none!important;border-radius:var(--r);cursor:pointer;box-shadow:none}
+.card .ph{aspect-ratio:3/4;border-radius:var(--r);background:linear-gradient(150deg,var(--sc,#3f7cc4),color-mix(in srgb,var(--sc,#3f7cc4) 50%,#000))}
+.card .ph .ini{color:rgba(255,255,255,.85)!important;font-size:84px}
+.card .ph .add{top:14px;bottom:auto;color:rgba(255,255,255,.85)}
+.card .bd{position:absolute;left:0;right:0;bottom:0;padding:48px 16px 16px;color:#fff;background:linear-gradient(to top,rgba(5,10,20,.82) 0%,rgba(5,10,20,.45) 55%,rgba(5,10,20,0) 100%);border-radius:0 0 var(--r) var(--r);pointer-events:none}
+.card .t{font-family:var(--display);font-size:22px;font-weight:600;white-space:normal;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+.card .s{color:rgba(255,255,255,.88);font-size:14px;margin-top:2px}
+.card .nt{color:rgba(255,255,255,.75);font-size:13px;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .del{position:absolute;top:10px;right:10px;z-index:2;width:38px;height:38px;border-radius:999px;border:0;background:rgba(255,255,255,.92);color:var(--danger);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.card .badge{top:10px;left:10px}
+.card:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.confirm h2{margin-bottom:6px}
+.confirm .big{font-size:15px;color:var(--muted);margin:0 0 14px}
+.btn.solid-danger{background:var(--danger);border-color:var(--danger);color:#fff}
 </style>
 </head>
 <body>
@@ -192,7 +209,7 @@ const store={
   },
   async savePrenda(id,data){ data=Object.assign({},data); delete data.id; if(!data.caja) data.caja=null;
     const r= id? await sb.from("prendas").update(data).eq("id",id) : await sb.from("prendas").insert(data); if(r.error) throw r.error; await store.reload() },
-  async deletePrenda(id){ const r=await sb.from("prendas").delete().eq("id",id); if(r.error) throw r.error; await store.reload() },
+  async deletePrenda(id,foto){ const r=await sb.from("prendas").delete().eq("id",id); if(r.error) throw r.error; if(foto){ try{ await sb.storage.from("fotos").remove([foto]) }catch(e){} } await store.reload() },
   async saveCaja(codigo,data){ data=Object.assign({},data); delete data.id; if(!data.creado) delete data.creado; data.codigo=codigo; const r=await sb.from("cajas").upsert(data); if(r.error) throw r.error; await store.reload() },
   async deleteCaja(codigo){ const r=await sb.from("cajas").delete().eq("codigo",codigo); if(r.error) throw r.error; await store.reload() },
   async setFondo(id,blob){ const path="fondos/"+id+"-"+Date.now()+".jpg";
@@ -233,7 +250,7 @@ function cardHTML(p,hideBox){
   if(p.ubicacion==="caja"&&p.caja){ if(!hideBox) badge=`<div class="badge"><div class="boxtag"><small>CAJA</small><span>${esc(p.caja.replace(/^C/,""))}</span></div></div>` }
   else if(p.ubicacion&&p.ubicacion!=="closet") badge=`<div class="badge"><span class="pill loc">${esc(UBI[p.ubicacion]||"")}</span></div>`;
   const ph = p.foto ? `<img src="${esc(imgSrc(p.foto))}" alt="${esc(p.nombre)}" loading="lazy">` : `<span class="ini" style="color:${sec?sec.c:"var(--accent)"}">${esc((p.nombre||"?").trim().charAt(0).toUpperCase())}</span><span class="add">Toca para agregar foto</span>`;
-  return `<button class="card" type="button" data-edit="${esc(p.id)}">${badge}<div class="ph">${ph}</div><div class="bd"><div class="t">${esc(p.nombre)}${p.ejemplo?'<span class="example">EJEMPLO</span>':""}</div><div class="s">${esc(bits)}</div></div></button>`;
+  return `<div class="card" role="button" tabindex="0" data-edit="${esc(p.id)}" style="--sc:${sec?sec.c:"#3f7cc4"}">${badge}<button class="del" type="button" data-del="${esc(p.id)}" aria-label="Eliminar ${esc(p.nombre)}" title="Eliminar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button><div class="ph">${ph}<div class="bd"><div class="t">${esc(p.nombre)}</div>${bits?`<div class="s">${esc(bits)}</div>`:""}${p.notas?`<div class="nt">${esc(p.notas)}</div>`:""}</div></div></div>`;
 }
 function boxCardHTML(c){
   const n=enCaja(c.codigo).length;
@@ -335,7 +352,8 @@ function wire(root){
   root.querySelectorAll("[data-go]").forEach(b=>{b.onclick=()=>{S.q="";go(b.dataset.go)}; if(b.classList.contains("banner")) b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();b.click()}}});
   root.querySelectorAll("[data-fondo-lbl]").forEach(l=>{l.onclick=e=>e.stopPropagation(); l.onkeydown=e=>e.stopPropagation()});
   root.querySelectorAll("input[data-fondo]").forEach(inp=>{inp.onclick=e=>e.stopPropagation(); inp.onchange=()=>subirFondo(inp.dataset.fondo,inp.files[0])});
-  root.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openPrenda(S.prendas.get(b.dataset.edit)));
+  root.querySelectorAll("[data-edit]").forEach(b=>{b.onclick=()=>openPrenda(S.prendas.get(b.dataset.edit)); if(b.classList.contains("card")) b.onkeydown=e=>{if(e.target===b&&(e.key==="Enter"||e.key===" ")){e.preventDefault();b.click()}}});
+  root.querySelectorAll("[data-del]").forEach(b=>b.onclick=e=>{e.stopPropagation();borrarPrenda(S.prendas.get(b.dataset.del))});
   root.querySelectorAll("[data-new-sec]").forEach(b=>b.onclick=()=>openPrenda(null,{seccion:b.dataset.newSec}));
   root.querySelectorAll("[data-new-box]").forEach(b=>b.onclick=()=>openPrenda(null,{ubicacion:"caja",caja:b.dataset.newBox,seccion:S.cajas.get(b.dataset.newBox.toLowerCase())?.seccion||""}));
   root.querySelectorAll("[data-newbox]").forEach(b=>b.onclick=()=>openCaja(null));
@@ -401,7 +419,20 @@ function openSheet(html){
   return L.querySelector(".sheet");
 }
 function closeSheet(){$("#layer").innerHTML=""}
-function armDelete(btn,fn){btn.onclick=()=>{ if(btn.classList.contains("armed")){fn()} else {btn.classList.add("armed");btn.textContent="Toca otra vez para borrar";setTimeout(()=>{btn.classList.remove("armed");btn.textContent=btn.dataset.label},3500)} }}
+function confirmar2(que,detalle,fn){
+  const el=openSheet(`<div class="confirm"><h2>¿Eliminar ${esc(que)}?</h2><p class="big">${esc(detalle)}</p><div class="row"><button class="btn danger" type="button" id="k1">Sí, eliminar</button><button class="btn" type="button" data-close>Cancelar</button></div></div>`);
+  el.querySelector("#k1").onclick=()=>{
+    const el2=openSheet(`<div class="confirm"><h2>¿Estás seguro?</h2><p class="big">Vas a eliminar ${esc(que)} para siempre. Esto no se puede deshacer.</p><div class="row"><button class="btn solid-danger" type="button" id="k2">Eliminar definitivamente</button><button class="btn" type="button" data-close>No, cancelar</button></div></div>`);
+    el2.querySelector("#k2").onclick=async()=>{ const b=el2.querySelector("#k2"); b.disabled=true; b.textContent="Eliminando…"; await fn() };
+  };
+}
+function borrarPrenda(p){
+  if(!p) return;
+  confirmar2("“"+p.nombre+"”","Se borrará esta prenda"+(p.foto?" y su foto":"")+".",async()=>{
+    try{ await store.deletePrenda(p.id,p.foto); closeSheet(); toast("Prenda eliminada") }catch(e){ closeSheet(); toastLong("No se pudo eliminar: "+((e&&e.message)||"intenta de nuevo")) }
+  });
+}
+function armDelete(btn,fn,que,detalle){btn.onclick=()=>confirmar2(que,detalle,fn)}
 
 function secOptions(sel){return `<option value="">— Elige sección —</option>`+Object.values(SEC).map(x=>`<option value="${x.id}" ${sel===x.id?"selected":""}>${esc(x.n)}</option>`).join("")}
 
@@ -423,14 +454,14 @@ function openPrenda(p,preset={}){
     </div>
     <div class="f"><label for="p-notas">NOTAS</label><textarea id="p-notas" rows="2" placeholder="Ej. le falta un botón, es de mi hermano…">${esc(v.notas)}</textarea></div>
     <div class="f"><label for="p-foto">FOTO (OPCIONAL)</label><div style="display:flex;gap:10px;align-items:center"><img id="p-prev" class="photo-prev" alt="" ${v.foto?`src="${esc(imgSrc(v.foto))}"`:"hidden"}><input id="p-foto" type="file" accept="image/*"></div><div class="note" id="p-foto-note" ${assets?"hidden":""}>Las fotos no están disponibles en esta vista.</div></div>
-    <div class="row"><button class="btn primary" type="submit" id="p-save">${isNew?"Guardar prenda":"Guardar cambios"}</button><button class="btn" type="button" data-close>Cancelar</button>${isNew?"":`<button class="btn danger" type="button" id="p-del" data-label="Borrar">Borrar</button>`}</div>
+    <div class="row"><button class="btn primary" type="submit" id="p-save">${isNew?"Guardar prenda":"Guardar cambios"}</button><button class="btn" type="button" data-close>Cancelar</button>${isNew?"":`<button class="btn danger" type="button" id="p-del">Eliminar</button>`}</div>
   </form>`);
   const ubi=el.querySelector("#p-ubi"), cw=el.querySelector("#p-caja-wrap");
   const sync=()=>cw.hidden=ubi.value!=="caja"; ubi.onchange=sync; sync();
   let newFile=null;
   const fi=el.querySelector("#p-foto"); fi.disabled=!assets;
   fi.onchange=()=>{newFile=fi.files[0]||null; const pv=el.querySelector("#p-prev"); if(newFile){pv.src=URL.createObjectURL(newFile);pv.hidden=false}};
-  if(!isNew) armDelete(el.querySelector("#p-del"),async()=>{try{await store.deletePrenda(p.id);closeSheet();toast("Prenda borrada")}catch(e){toast("No se pudo borrar. Intenta de nuevo.")}});
+  if(!isNew) el.querySelector("#p-del").onclick=()=>borrarPrenda(p);
   el.querySelector("#fp").onsubmit=async e=>{
     e.preventDefault(); const btn=el.querySelector("#p-save"); btn.disabled=true; btn.textContent="Guardando…";
     const data={
@@ -471,8 +502,8 @@ function openCaja(c,codigo){
   if(!isNew) armDelete(el.querySelector("#c-del"),async()=>{
     try{ for(const p of enCaja(c.codigo)){ await store.savePrenda(p.id,{ubicacion:"closet",caja:null}) }
       await store.deleteCaja(c.codigo); closeSheet(); toast("Caja borrada"); go("cajas") }
-    catch(e){ toast("No se pudo borrar. Intenta de nuevo.") }
-  });
+    catch(e){ closeSheet(); toastLong("No se pudo eliminar: "+((e&&e.message)||"intenta de nuevo")) }
+  },"la caja "+c.codigo,n?("Sus "+n+" prendas no se borran: pasan a “Closet”."):"La caja está vacía.");
   el.querySelector("#fc").onsubmit=async e=>{
     e.preventDefault(); const btn=el.querySelector("#c-save"); btn.disabled=true;
     const data=Object.assign({},isNew?{}:stripId(c),{codigo:v.codigo,nombre:el.querySelector("#c-nombre").value.trim(),lugar:el.querySelector("#c-lugar").value.trim(),seccion:el.querySelector("#c-sec").value,notas:el.querySelector("#c-notas").value.trim()});
