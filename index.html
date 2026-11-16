@@ -176,6 +176,12 @@ button{cursor:pointer}
 .fsel span{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .fsel select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 10px;width:100%}
 @media (max-width:700px){.fsel{flex:1 1 calc(50% - 5px);max-width:none}.filtros .chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.chip{white-space:nowrap}}
+.secbar{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.secbar-l{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.secchips{margin-top:0}
+.chip .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:800;padding:0;text-decoration:underline}
+@media (max-width:700px){.secchips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}}
 </style>
 </head>
 <body>
@@ -244,7 +250,8 @@ const store={
     const r=await sb.storage.from("fotos").upload(path,blob,{contentType:blob.type||"image/jpeg"}); if(r.error) throw r.error; return path }
 };
 function clean(r){const o={};for(const k in r){o[k]=r[k]==null?"":r[k]}return o}
-const S = { prendas:new Map(), cajas:new Map(), loaded:{p:false,c:false}, q:"", tab:"secciones", ubiFilter:"", secFilter:"", fil:{sec:"",ubi:"",color:"",talla:"",marca:"",orden:"nombre"} };
+const S = { prendas:new Map(), cajas:new Map(), loaded:{p:false,c:false}, q:"", tab:"secciones", ubiFilter:"", secFilter:"", homeSecs:[], fil:{sec:"",ubi:"",color:"",talla:"",marca:"",orden:"nombre"} };
+try{const hs=JSON.parse(localStorage.getItem("homeSecs")||"[]"); if(Array.isArray(hs)) S.homeSecs=hs.filter(x=>SEC[x])}catch(e){}
 const $ = s=>document.querySelector(s);
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const norm = s=>String(s??"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
@@ -314,7 +321,11 @@ function viewHome(tab){
   h+=`<div class="tabs" role="tablist">${[["secciones","Secciones"],["cajas","Cajas"],["todo","Toda la ropa"]].map(([k,n])=>`<button class="tab" type="button" data-go="${k==="secciones"?"":k}" aria-current="${tab===k}">${n}</button>`).join("")}</div>`;
   h+=`<div class="stats"><span><b>${tP}</b>prendas</span><span><b>${tC}</b>cajas</span><span><b>${tEnCaja}</b>guardadas en caja</span></div>`;
   if(tab==="secciones"){
-    h+=`<div class="banners">`+Object.values(SEC).map(sec=>bannerHTML(sec,false)).join("")+`</div>`;
+    const sel=S.homeSecs;
+    h+=`<div class="secbar"><span class="secbar-l">Ver secciones:</span><div class="chips secchips"><button class="chip" type="button" data-hsec="" aria-pressed="${!sel.length}">Todas</button>${Object.values(SEC).map(x=>`<button class="chip" type="button" data-hsec="${x.id}" aria-pressed="${sel.includes(x.id)}"><span class="dot" style="background:${x.c}"></span>${esc(x.n)}</button>`).join("")}</div></div>`;
+    const vis=Object.values(SEC).filter(x=>!sel.length||sel.includes(x.id));
+    if(sel.length) h+=`<div class="note">Mostrando ${vis.length} de ${Object.keys(SEC).length} secciones · <button class="linkbtn" type="button" data-hsec="">ver todas</button></div>`;
+    h+=`<div class="banners">`+vis.map(sec=>bannerHTML(sec,false)).join("")+`</div>`;
   } else if(tab==="cajas"){
     const cs=cajasArr();
     h+=`<div class="row"><button class="btn primary" type="button" data-newbox>+ Nueva caja</button>${cs.length?`<button class="btn" type="button" data-go="etiquetas">Imprimir etiquetas QR</button>`:""}<button class="btn" type="button" data-logout>Cerrar sesión</button></div>`;
@@ -418,6 +429,7 @@ function wire(root){
   root.querySelectorAll("[data-label]").forEach(b=>b.onclick=()=>saveLabel(S.cajas.get(b.dataset.label.toLowerCase())));
   root.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>window.print());
   root.querySelectorAll("[data-logout]").forEach(b=>b.onclick=async()=>{await sb.auth.signOut();location.hash="";showLogin()});
+  root.querySelectorAll("[data-hsec]").forEach(b=>b.onclick=()=>{const id=b.dataset.hsec; if(!id) S.homeSecs=[]; else S.homeSecs=S.homeSecs.includes(id)?S.homeSecs.filter(x=>x!==id):[...S.homeSecs,id]; try{localStorage.setItem("homeSecs",JSON.stringify(S.homeSecs))}catch(e){} render()});
   root.querySelectorAll("[data-fil-ubi]").forEach(b=>b.onclick=()=>{S.fil.ubi=b.dataset.filUbi;render()});
   root.querySelectorAll("select[data-fil]").forEach(sl=>sl.onchange=()=>{S.fil[sl.dataset.fil]=sl.value;render()});
   root.querySelectorAll("[data-fil-clear]").forEach(b=>b.onclick=()=>{Object.assign(S.fil,{sec:"",ubi:"",color:"",talla:"",marca:""});render()});
