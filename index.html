@@ -3,33 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#1f63b3">
+<meta name="theme-color" content="#1b1520">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Guille’s Closet</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,600&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <style>
 /* Layout: una columna tipo app de celular; tarjetas por sección, cajas como etiquetas con número grande. */
 :root{
-  --bg:#f6f8fb; --surface:#ffffff; --ink:#16233a; --muted:#5d6b80; --line:#dde4ee;
-  --accent:#1f63b3; --accent-ink:#ffffff; --accent-soft:#e6eefa; --box:#8a5a2b; --box-soft:#f5ebe0;
+  --bg:#f5f3f6; --surface:#ffffff; --ink:#1b1520; --muted:#6b6372; --line:#e4dfe7;
+  --accent:#8a2a5b; --accent-ink:#ffffff; --accent-soft:#f3e6ee; --box:#2f2a35; --box-soft:#ece9ef;
   --danger:#b3261e; --ok:#1d7a4a;
-  --display:"Fraunces", Georgia, "Times New Roman", serif;
-  --body:"Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --r:16px;
+  --display:"Syne", "Arial Black", system-ui, sans-serif;
+  --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:4px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0f1520; --surface:#18212f; --ink:#e8eef7; --muted:#9aa8bc; --line:#2a3647;
-  --accent:#6ea8f0; --accent-ink:#0b1422; --accent-soft:#1d2d45; --box:#d9a46c; --box-soft:#2e241a;
+  --bg:#141117; --surface:#1e1a22; --ink:#f1edf3; --muted:#a79fae; --line:#322b38;
+  --accent:#e08ab6; --accent-ink:#1b1520; --accent-soft:#3a2233; --box:#e6dfec; --box-soft:#2a2430;
   --danger:#ff8a80; --ok:#6fd39c; color-scheme:dark }}
 :root[data-theme="dark"]{
-  --bg:#0f1520; --surface:#18212f; --ink:#e8eef7; --muted:#9aa8bc; --line:#2a3647;
-  --accent:#6ea8f0; --accent-ink:#0b1422; --accent-soft:#1d2d45; --box:#d9a46c; --box-soft:#2e241a;
+  --bg:#141117; --surface:#1e1a22; --ink:#f1edf3; --muted:#a79fae; --line:#322b38;
+  --accent:#e08ab6; --accent-ink:#1b1520; --accent-soft:#3a2233; --box:#e6dfec; --box-soft:#2a2430;
   --danger:#ff8a80; --ok:#6fd39c; color-scheme:dark }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -68,7 +68,7 @@ button{cursor:pointer}
 .banner .in{position:absolute;left:clamp(18px,3vw,44px);bottom:clamp(16px,2.6vw,36px);right:120px}
 .banner .nm{font-family:var(--display);font-weight:600;font-size:clamp(34px,6.4vw,84px);line-height:.95;letter-spacing:-.01em;text-shadow:0 2px 18px rgba(0,0,0,.35)}
 .banner .ct{margin-top:8px;font-weight:700;font-size:clamp(13px,1.4vw,17px);opacity:.92}
-.banner .ph-btn{position:absolute;top:clamp(10px,1.4vw,18px);right:clamp(10px,1.4vw,18px);background:rgba(255,255,255,.9);color:#16233a;border:0;border-radius:999px;padding:8px 13px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px}
+.banner .ph-btn{position:absolute;top:clamp(10px,1.4vw,18px);right:clamp(10px,1.4vw,18px);background:rgba(255,255,255,.9);color:#1b1520;border:0;border-radius:999px;padding:8px 13px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px}
 .banner .go{position:absolute;right:clamp(18px,3vw,44px);bottom:clamp(16px,2.6vw,36px);font-weight:800;font-size:clamp(13px,1.4vw,16px);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:8px 14px;backdrop-filter:blur(4px)}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){.banner:hover .bg{transform:scale(1.04)}}
 .hero{min-height:clamp(140px,20vw,240px);cursor:default}
@@ -135,6 +135,31 @@ button{cursor:pointer}
 .example{font-size:10px;font-weight:800;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 5px;margin-left:6px;vertical-align:2px}
 @media (max-width:420px){h1{font-size:26px}.two{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
+
+/* ===== Estilo boutique (distinto a la app de zapatos) ===== */
+h1,h2,h3{font-weight:800;letter-spacing:-.01em}
+.brand{border-bottom:2px solid var(--ink)}
+.brand h1{text-transform:uppercase;font-size:clamp(38px,9.5vw,120px);letter-spacing:-.03em;line-height:.9}
+.brand h1 em{font-style:normal;color:var(--accent)}
+.search,.tab,.chip,.btn,.fab,.pill,.boxtag,.banner .ph-btn,.banner .go,.item,.card,.boxcard,.sec,.empty,.qrbox,.thumb,.photo-prev,.f input,.f select,.f textarea,.toast{border-radius:4px!important}
+.search{border:1.5px solid var(--ink)}
+.tabs{gap:22px;border-bottom:1px solid var(--line)}
+.tab{background:none!important;border:0!important;border-bottom:3px solid transparent!important;padding:10px 0!important;text-transform:uppercase;letter-spacing:.12em;font-size:12px!important;color:var(--muted)}
+.tab[aria-current="true"]{color:var(--ink)!important;border-bottom-color:var(--accent)!important}
+.btn{text-transform:uppercase;letter-spacing:.08em;font-size:12px;border:1.5px solid var(--ink)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.fab{background:var(--ink);color:var(--bg);text-transform:uppercase;letter-spacing:.1em;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stats b{font-family:var(--display)}
+.banner{border-radius:6px!important}
+.banner .nm{font-weight:800;text-transform:uppercase;letter-spacing:-.02em;font-size:clamp(32px,7vw,96px)}
+.banner .ct{text-transform:uppercase;letter-spacing:.14em;font-size:clamp(11px,1.1vw,13px)}
+.banner .go{text-transform:uppercase;letter-spacing:.12em;font-size:12px;border-radius:4px!important}
+.banner .ph-btn{text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+.card .ph{background:var(--box-soft)}
+.card .t,.item .t{font-weight:700}
+.group-title{letter-spacing:.18em}
+.sheet{border-radius:6px 6px 0 0}
 </style>
 </head>
 <body>
@@ -367,13 +392,13 @@ function drawQRs(){
 function labelCanvas(c){
   const W=900,H=1200, cv=document.createElement("canvas"); cv.width=W; cv.height=H; const x=cv.getContext("2d");
   x.fillStyle="#fff"; x.fillRect(0,0,W,H);
-  x.strokeStyle="#16233a"; x.lineWidth=6; x.setLineDash([22,14]); x.strokeRect(20,20,W-40,H-40); x.setLineDash([]);
-  x.fillStyle="#8a5a2b"; x.textAlign="center";
-  x.font="800 44px Nunito, sans-serif"; x.fillText("C A J A",W/2,120);
-  x.fillStyle="#16233a"; x.font="600 190px Fraunces, Georgia, serif"; x.fillText(c.codigo,W/2,300);
-  x.font="700 46px Nunito, sans-serif"; x.fillText((c.nombre||"").slice(0,30),W/2,380);
+  x.strokeStyle="#1b1520"; x.lineWidth=6; x.setLineDash([22,14]); x.strokeRect(20,20,W-40,H-40); x.setLineDash([]);
+  x.fillStyle="#8a2a5b"; x.textAlign="center";
+  x.font="700 40px 'DM Sans', sans-serif"; x.fillText("C A J A",W/2,120);
+  x.fillStyle="#1b1520"; x.font="800 180px Syne, 'Arial Black', sans-serif"; x.fillText(c.codigo,W/2,300);
+  x.font="700 46px 'DM Sans', sans-serif"; x.fillText((c.nombre||"").slice(0,30),W/2,380);
   drawQR(x,cajaURL(c.codigo),170,420,560);
-  x.fillStyle="#5d6b80"; x.font="600 32px Nunito, sans-serif";
+  x.fillStyle="#5d6b80"; x.font="600 32px 'DM Sans', sans-serif";
   x.fillText("Escanea para ver qué hay adentro",W/2,1050);
   if(c.lugar) x.fillText("Va en: "+c.lugar.slice(0,34),W/2,1100);
   return cv;
