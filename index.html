@@ -68,7 +68,7 @@ button{cursor:pointer}
 .banner .in{position:absolute;left:clamp(18px,3vw,44px);bottom:clamp(16px,2.6vw,36px);right:120px}
 .banner .nm{font-family:var(--display);font-weight:600;font-size:clamp(34px,6.4vw,84px);line-height:.95;letter-spacing:-.01em;text-shadow:0 2px 18px rgba(0,0,0,.35)}
 .banner .ct{margin-top:8px;font-weight:700;font-size:clamp(13px,1.4vw,17px);opacity:.92}
-.banner .ph-btn{position:absolute;top:clamp(10px,1.4vw,18px);right:clamp(10px,1.4vw,18px);background:rgba(255,255,255,.9);color:#16233a;border:0;border-radius:999px;padding:8px 13px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px}
+.banner .ph-btn{cursor:pointer;position:absolute;top:clamp(10px,1.4vw,18px);right:clamp(10px,1.4vw,18px);background:rgba(255,255,255,.9);color:#16233a;border:0;border-radius:999px;padding:8px 13px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px}
 .banner .go{position:absolute;right:clamp(18px,3vw,44px);bottom:clamp(16px,2.6vw,36px);font-weight:800;font-size:clamp(13px,1.4vw,16px);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:8px 14px;backdrop-filter:blur(4px)}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){.banner:hover .bg{transform:scale(1.04)}}
 .hero{min-height:clamp(140px,20vw,240px);cursor:default}
@@ -299,15 +299,15 @@ function bannerHTML(sec,hero){
   const tag=hero?"div":"div";
   return `<div class="banner ${u?"":"noimg"} ${hero?"hero":""}" style="--sc:${sec.c}" ${hero?"":`role="link" tabindex="0" data-go="seccion-${sec.id}"`}>${u?`<img class="bg" src="${esc(u)}" alt="">`:""}
     <div class="in"><div class="nm">${esc(sec.n)}</div><div class="ct">${k} ${k===1?"prenda":"prendas"}${enc?` · ${enc} en cajas`:""}</div></div>
-    <button class="ph-btn" type="button" data-fondo="${sec.id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>${u?"Cambiar fondo":"Poner fondo"}</button>
+    <label class="ph-btn" data-fondo-lbl><input type="file" accept="image/*" data-fondo="${sec.id}" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>${u?"Cambiar fondo":"Poner fondo"}</label>
     ${hero?"":`<span class="go">Ver →</span>`}</div>`;
 }
-function pickFondo(id){
-  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
-  inp.onchange=async()=>{ const f=inp.files[0]; if(!f) return; toast("Subiendo fondo…");
-    try{ const b=await shrink(f,1800); await store.setFondo(id,b); toast("Fondo listo") }catch(e){ toast("No se pudo subir la imagen. Intenta otra vez.") } };
-  inp.click();
+async function subirFondo(id,f){
+  if(!f) return; toast("Subiendo fondo…");
+  try{ const b=await shrink(f,1800); await store.setFondo(id,b); toast("Fondo listo") }
+  catch(e){ console.error(e); toastLong("No se pudo subir la imagen: "+((e&&(e.message||e.error))||"error desconocido")) }
 }
+function toastLong(msg){const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),7000)}
 function viewSeccion(id){
   const sec=SEC[id]; if(!sec) return `<button class="back" data-go="">← Inicio</button><div class="empty">Esa sección no existe.</div>`;
   const ps=prendasArr().filter(p=>p.seccion===id);
@@ -333,7 +333,8 @@ function viewCaja(cod){
 
 function wire(root){
   root.querySelectorAll("[data-go]").forEach(b=>{b.onclick=()=>{S.q="";go(b.dataset.go)}; if(b.classList.contains("banner")) b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();b.click()}}});
-  root.querySelectorAll("[data-fondo]").forEach(b=>b.onclick=e=>{e.stopPropagation();pickFondo(b.dataset.fondo)});
+  root.querySelectorAll("[data-fondo-lbl]").forEach(l=>{l.onclick=e=>e.stopPropagation(); l.onkeydown=e=>e.stopPropagation()});
+  root.querySelectorAll("input[data-fondo]").forEach(inp=>{inp.onclick=e=>e.stopPropagation(); inp.onchange=()=>subirFondo(inp.dataset.fondo,inp.files[0])});
   root.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openPrenda(S.prendas.get(b.dataset.edit)));
   root.querySelectorAll("[data-new-sec]").forEach(b=>b.onclick=()=>openPrenda(null,{seccion:b.dataset.newSec}));
   root.querySelectorAll("[data-new-box]").forEach(b=>b.onclick=()=>openPrenda(null,{ubicacion:"caja",caja:b.dataset.newBox,seccion:S.cajas.get(b.dataset.newBox.toLowerCase())?.seccion||""}));
@@ -443,7 +444,7 @@ function openPrenda(p,preset={}){
       if(newFile){ const small=await shrink(newFile); data.foto=await store.uploadFoto(small) }
       await store.savePrenda(isNew?null:p.id, data);
       closeSheet(); toast(isNew?"Prenda guardada":"Cambios guardados");
-    }catch(err){ btn.disabled=false; btn.textContent="Guardar"; toast(err&&err.code==="quota_exceeded"?"Se llenó el espacio. Borra algunas fotos o prendas.":"No se pudo guardar. Revisa tu conexión e intenta otra vez.") }
+    }catch(err){ btn.disabled=false; btn.textContent="Guardar"; console.error(err); toastLong("No se pudo guardar: "+((err&&(err.message||err.error))||"revisa tu conexión")) }
   };
 }
 function stripId(o){const c=Object.assign({},o);delete c.id;return c}
