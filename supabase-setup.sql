@@ -42,3 +42,8 @@ on conflict (id) do nothing;
 drop policy if exists "fotos con sesion" on storage.objects;
 create policy "fotos con sesion" on storage.objects for all to authenticated
   using (bucket_id = 'fotos') with check (bucket_id = 'fotos');
+
+-- Permisos de uso para el usuario con sesion (los proyectos nuevos no los dan solos).
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.prendas to authenticated;
+grant select, insert, update, delete on public.cajas to authenticated;
