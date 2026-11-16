@@ -152,6 +152,23 @@ button{cursor:pointer}
 .confirm h2{margin-bottom:6px}
 .confirm .big{font-size:15px;color:var(--muted);margin:0 0 14px}
 .btn.solid-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+@media (max-width:700px){
+  .cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .card .ph{border-radius:10px}
+  .card .ph .ini{font-size:34px}
+  .card .ph .add{display:none}
+  .card .bd{padding:26px 7px 7px;border-radius:0 0 10px 10px}
+  .card .t{font-size:13px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .card .s{font-size:11px;-webkit-line-clamp:1}
+  .card .nt{display:none}
+  .card .del{width:26px;height:26px;top:5px;right:5px}
+  .card .del svg{width:13px;height:13px}
+  .card .badge{top:5px;left:5px}
+  .card .badge .boxtag{padding:2px 5px}
+  .card .badge .boxtag small{font-size:7px}
+  .card .badge .boxtag span{font-size:13px}
+  .card .badge .pill{font-size:8px;padding:2px 5px}
+}
 </style>
 </head>
 <body>
