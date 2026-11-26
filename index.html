@@ -603,6 +603,11 @@ $("#fab").onclick=()=>{
 async function boot(){
   $("#fab").hidden=false;
   try{ await store.reload() }catch(e){ const s=$("#status"); if(s) s.textContent="No se pudieron cargar los datos"; console.error(e) }
+  // Primera vez: crear Caja 1 a Caja 10 (las de las etiquetas QR impresas)
+  try{ if(S.loaded.c && S.cajas.size===0){
+    const rows=[]; for(let i=1;i<=10;i++) rows.push({codigo:"C"+String(i).padStart(2,"0"),nombre:"Caja "+i,lugar:"",seccion:"",notas:""});
+    const r=await sb.from("cajas").upsert(rows,{onConflict:"codigo",ignoreDuplicates:true}); if(!r.error) await store.reload();
+  } }catch(e){ console.error(e) }
   document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") store.reload().catch(()=>{}) });
 }
 function showLogin(){
