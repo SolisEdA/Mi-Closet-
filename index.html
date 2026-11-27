@@ -201,6 +201,12 @@ button{cursor:pointer}
 .vw-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:max(12px,env(safe-area-inset-right,0px));width:40px;height:40px;border-radius:999px;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:18px;z-index:2}
 .vw-nav{position:absolute;top:42%;width:44px;height:44px;border-radius:999px;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:30px;line-height:1;z-index:2}
 .vw-nav.l{left:max(8px,env(safe-area-inset-left,0px))}.vw-nav.r{right:max(8px,env(safe-area-inset-right,0px))}
+.banners.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px;margin-top:8px}
+.banners.subs .banner{min-height:clamp(110px,14vw,170px)}
+.banners.subs .banner .nm{font-size:clamp(26px,3.4vw,44px)}
+.banners.subs .banner .in{right:16px}
+.banners.subs .banner .go{display:none}
+@media (max-width:700px){.banners.subs{grid-template-columns:1fr 1fr 1fr;gap:8px}.banners.subs .banner{min-height:110px;border-radius:12px}.banners.subs .banner .nm{font-size:17px}.banners.subs .banner .ct{font-size:10px;margin-top:3px}.banners.subs .banner .in{left:10px;bottom:10px;right:8px}.banners.subs .banner .ph-btn{padding:5px 7px;font-size:0;gap:0;top:6px;right:6px}.banners.subs .banner .ph-btn svg{width:13px;height:13px}}
 </style>
 </head>
 <body>
@@ -220,8 +226,9 @@ const SECCIONES = [
   ["", [
     ["verano","Verano","#e0892b"],
     ["invierno","Invierno","#3f7cc4"],
-    ["abrigos","Abrigos","#5b5f8f"],
-    ["chamarras","Chamarras","#7a4b2c"],
+    ["abrigos","Abrigos","#5b5f8f","invierno"],
+    ["sueteres","Suéteres","#8a6d4f","invierno"],
+    ["chamarras","Chamarras","#7a4b2c","invierno"],
     ["formal","Formal","#2c3e66"],
     ["casual","Casual","#2f8a6a"],
     ["blusas","Blusas / Camisas","#c07a4a"],
@@ -237,7 +244,11 @@ const SECCIONES = [
     ["bolsas","Bolsas","#9a6b3f"],
   ]],
 ];
-const SEC = {}; SECCIONES.forEach(([g,l])=>l.forEach(([id,n,c])=>SEC[id]={id,n,c,g}));
+const SEC = {}; SECCIONES.forEach(([g,l])=>l.forEach(([id,n,c,parent])=>SEC[id]={id,n,c,g,parent:parent||""}));
+const TOP = ()=>Object.values(SEC).filter(x=>!x.parent);
+const HIJOS = id=>Object.values(SEC).filter(x=>x.parent===id);
+const enSec = (p,id)=>p.seccion===id||(SEC[p.seccion]&&SEC[p.seccion].parent===id);
+const nombreSec = id=>{const x=SEC[id]; if(!x) return ""; return x.parent&&SEC[x.parent]?SEC[x.parent].n+" › "+x.n:x.n};
 const UBICACIONES = [["closet","Closet (colgado)"],["cajon","Cajón"],["caja","En una caja"],["lavanderia","Lavandería / sucia"],["prestada","Prestada"]];
 const UBI = Object.fromEntries(UBICACIONES);
 
@@ -275,7 +286,7 @@ const store={
 };
 function clean(r){const o={};for(const k in r){o[k]=r[k]==null?"":r[k]}return o}
 const S = { prendas:new Map(), cajas:new Map(), loaded:{p:false,c:false}, q:"", tab:"secciones", ubiFilter:"", secFilter:"", homeSecs:[], fil:{sec:"",ubi:"",color:"",talla:"",marca:"",orden:"nombre"} };
-try{const hs=JSON.parse(localStorage.getItem("homeSecs")||"[]"); if(Array.isArray(hs)) S.homeSecs=hs.filter(x=>SEC[x])}catch(e){}
+try{const hs=JSON.parse(localStorage.getItem("homeSecs")||"[]"); if(Array.isArray(hs)) S.homeSecs=hs.filter(x=>SEC[x]&&!SEC[x].parent)}catch(e){}
 const $ = s=>document.querySelector(s);
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const norm = s=>String(s??"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
@@ -291,7 +302,7 @@ window.addEventListener("hashchange",()=>{render();window.scrollTo(0,0)});
 function prendasArr(){return [...S.prendas.values()].sort((a,b)=>norm(a.nombre).localeCompare(norm(b.nombre)))}
 function cajasArr(){return [...S.cajas.values()].sort((a,b)=>a.codigo.localeCompare(b.codigo,undefined,{numeric:true}))}
 function enCaja(cod){return prendasArr().filter(p=>p.ubicacion==="caja"&&p.caja===cod)}
-function countSec(id){let n=0;S.prendas.forEach(p=>{if(p.seccion===id)n++});return n}
+function countSec(id){let n=0;S.prendas.forEach(p=>{if(enSec(p,id))n++});return n}
 
 function itemHTML(p){
   const sec=SEC[p.seccion]; const bits=[sec?sec.n:"", p.color, p.talla?("Talla "+p.talla):"", p.marca].filter(Boolean).join(" · ");
@@ -300,7 +311,7 @@ function itemHTML(p){
   return `<button class="item" type="button" data-edit="${esc(p.id)}"><div class="thumb" style="${sec?`color:${sec.c}`:""}">${th}</div><div class="txt"><div class="t">${esc(p.nombre)}${p.ejemplo?'<span class="example">EJEMPLO</span>':""}</div><div class="s">${esc(bits)}</div></div>${where}</button>`;
 }
 function cardHTML(p,hideBox){
-  const sec=SEC[p.seccion]; const bits=[p.color, p.talla?("Talla "+p.talla):"", p.marca].filter(Boolean).join(" · ")||(sec?sec.n:"");
+  const sec=SEC[p.seccion]; const bits=[sec&&sec.parent?sec.n:"", p.color, p.talla?("Talla "+p.talla):"", p.marca].filter(Boolean).join(" · ")||(sec?sec.n:"");
   let badge="";
   if(p.ubicacion==="caja"&&p.caja){ if(!hideBox) badge=`<div class="badge"><div class="boxtag"><small>CAJA</small><span>${esc(p.caja.replace(/^C/,""))}</span></div></div>` }
   else if(p.ubicacion&&p.ubicacion!=="closet") badge=`<div class="badge"><span class="pill loc">${esc(UBI[p.ubicacion]||"")}</span></div>`;
@@ -346,9 +357,9 @@ function viewHome(tab){
   h+=`<div class="stats"><span><b>${tP}</b>prendas</span><span><b>${tC}</b>cajas</span><span><b>${tEnCaja}</b>guardadas en caja</span></div>`;
   if(tab==="secciones"){
     const sel=S.homeSecs;
-    h+=`<div class="secbar"><span class="secbar-l">Ver secciones:</span><div class="chips secchips"><button class="chip" type="button" data-hsec="" aria-pressed="${!sel.length}">Todas</button>${Object.values(SEC).map(x=>`<button class="chip" type="button" data-hsec="${x.id}" aria-pressed="${sel.includes(x.id)}"><span class="dot" style="background:${x.c}"></span>${esc(x.n)}</button>`).join("")}</div></div>`;
-    const vis=Object.values(SEC).filter(x=>!sel.length||sel.includes(x.id));
-    if(sel.length) h+=`<div class="note">Mostrando ${vis.length} de ${Object.keys(SEC).length} secciones · <button class="linkbtn" type="button" data-hsec="">ver todas</button></div>`;
+    h+=`<div class="secbar"><span class="secbar-l">Ver secciones:</span><div class="chips secchips"><button class="chip" type="button" data-hsec="" aria-pressed="${!sel.length}">Todas</button>${TOP().map(x=>`<button class="chip" type="button" data-hsec="${x.id}" aria-pressed="${sel.includes(x.id)}"><span class="dot" style="background:${x.c}"></span>${esc(x.n)}</button>`).join("")}</div></div>`;
+    const vis=TOP().filter(x=>!sel.length||sel.includes(x.id));
+    if(sel.length) h+=`<div class="note">Mostrando ${vis.length} de ${TOP().length} secciones · <button class="linkbtn" type="button" data-hsec="">ver todas</button></div>`;
     h+=`<div class="banners">`+vis.map(sec=>bannerHTML(sec,false)).join("")+`</div>`;
   } else if(tab==="cajas"){
     const cs=cajasArr();
@@ -371,7 +382,7 @@ function viewEtiquetas(){
 }
 function fondoURL(id){const p=(S.fondos||{})[id];return p?urlCache.get(p)||"":""}
 function bannerHTML(sec,hero){
-  const k=countSec(sec.id); let enc=0; S.prendas.forEach(p=>{if(p.seccion===sec.id&&p.ubicacion==="caja")enc++});
+  const k=countSec(sec.id); let enc=0; S.prendas.forEach(p=>{if(enSec(p,sec.id)&&p.ubicacion==="caja")enc++});
   const u=fondoURL(sec.id);
   const tag=hero?"div":"div";
   return `<div class="banner ${u?"":"noimg"} ${hero?"hero":""}" style="--sc:${sec.c}" ${hero?"":`role="link" tabindex="0" data-go="seccion-${sec.id}"`}>${u?`<img class="bg" src="${esc(u)}" alt="">`:""}
@@ -392,7 +403,7 @@ function filtrosHTML(ps,showSec){
   return `<div class="filtros">
     <div class="chips">${[["","Todas"],...UBICACIONES].map(([k,n])=>`<button class="chip" type="button" data-fil-ubi="${k}" aria-pressed="${F.ubi===k}">${esc(n)}</button>`).join("")}</div>
     <div class="frow">
-      ${showSec?`<label class="fsel"><span>Sección</span><select data-fil="sec"><option value="">Todas</option>${Object.values(SEC).map(x=>`<option value="${x.id}" ${F.sec===x.id?"selected":""}>${esc(x.n)}</option>`).join("")}</select></label>`:""}
+      ${showSec?`<label class="fsel"><span>Sección</span><select data-fil="sec"><option value="">Todas</option>${ordenSecs().map(x=>`<option value="${x.id}" ${F.sec===x.id?"selected":""}>${esc(x.parent?"   › "+x.n:x.n)}</option>`).join("")}</select></label>`:""}
       ${sel("color","Color",uniq("color"))}${sel("talla","Talla",uniq("talla"))}${sel("marca","Marca",uniq("marca"))}
       <label class="fsel"><span>Ordenar</span><select data-fil="orden"><option value="nombre" ${F.orden==="nombre"?"selected":""}>Nombre A–Z</option><option value="nuevo" ${F.orden==="nuevo"?"selected":""}>Más nuevas</option><option value="color" ${F.orden==="color"?"selected":""}>Color</option></select></label>
       ${activos?`<button class="btn" type="button" data-fil-clear>Quitar filtros (${activos})</button>`:""}
@@ -400,7 +411,7 @@ function filtrosHTML(ps,showSec){
 }
 function aplicarFiltros(ps){
   const F=S.fil;
-  let r=ps.filter(p=>(!F.sec||p.seccion===F.sec)&&(!F.ubi||p.ubicacion===F.ubi)&&(!F.color||norm(p.color)===norm(F.color))&&(!F.talla||norm(p.talla)===norm(F.talla))&&(!F.marca||norm(p.marca)===norm(F.marca)));
+  let r=ps.filter(p=>(!F.sec||enSec(p,F.sec))&&(!F.ubi||p.ubicacion===F.ubi)&&(!F.color||norm(p.color)===norm(F.color))&&(!F.talla||norm(p.talla)===norm(F.talla))&&(!F.marca||norm(p.marca)===norm(F.marca)));
   if(F.orden==="nuevo") r=r.slice().sort((a,b)=>String(b.creado||"").localeCompare(String(a.creado||"")));
   else if(F.orden==="color") r=r.slice().sort((a,b)=>norm(a.color).localeCompare(norm(b.color))||norm(a.nombre).localeCompare(norm(b.nombre)));
   return r;
@@ -409,11 +420,14 @@ let filCtx="";
 function resetFil(ctx){ if(filCtx!==ctx){ filCtx=ctx; S.fil={sec:"",ubi:"",color:"",talla:"",marca:"",orden:S.fil.orden||"nombre"} } }
 function viewSeccion(id){
   const sec=SEC[id]; if(!sec) return `<button class="back" data-go="">← Inicio</button><div class="empty">Esa sección no existe.</div>`;
-  const ps=prendasArr().filter(p=>p.seccion===id);
-  const fuera=ps.filter(p=>p.ubicacion!=="caja"), dentro=ps.filter(p=>p.ubicacion==="caja");
-  let h=`<button class="back" type="button" data-go="">← Secciones</button>`+bannerHTML(sec,true);
+  const ps=prendasArr().filter(p=>enSec(p,id));
+  const padre=sec.parent&&SEC[sec.parent];
+  let h=(padre?`<button class="back" type="button" data-go="seccion-${padre.id}">← ${esc(padre.n)}</button>`:`<button class="back" type="button" data-go="">← Secciones</button>`)+bannerHTML(sec,true);
+  const hijos=HIJOS(id);
+  if(hijos.length) h+=`<div class="group-title">Dentro de ${esc(sec.n)}</div><div class="banners subs">${hijos.map(x=>bannerHTML(x,false)).join("")}</div>`;
   h+=`<div class="row"><button class="btn primary" type="button" data-new-sec="${id}">+ Agregar a ${esc(sec.n)}</button></div>`;
   if(!ps.length) return h+`<div class="empty">Todavía no hay prendas en esta sección.</div>`;
+  if(hijos.length) h+=`<div class="group-title" style="margin-top:26px">Todo ${esc(sec.n)}</div>`;
   resetFil("sec-"+id);
   h+=filtrosHTML(ps,false);
   const fps=aplicarFiltros(ps);
@@ -525,7 +539,7 @@ function openViewer(id){
 function showViewer(){
   const p=S.prendas.get(viewerIds[viewerIdx]); if(!p){closeSheet();return}
   const sec=SEC[p.seccion];
-  const det=[["Sección",sec?sec.n:""],["Color",p.color],["Talla",p.talla],["Marca",p.marca],["Dónde está",p.ubicacion==="caja"&&p.caja?("Caja "+p.caja.replace(/^C0?/,"")):(UBI[p.ubicacion]||"")]].filter(x=>x[1]);
+  const det=[["Sección",nombreSec(p.seccion)],["Color",p.color],["Talla",p.talla],["Marca",p.marca],["Dónde está",p.ubicacion==="caja"&&p.caja?("Caja "+p.caja.replace(/^C0?/,"")):(UBI[p.ubicacion]||"")]].filter(x=>x[1]);
   const img=p.foto&&imgSrc(p.foto)?`<img src="${esc(imgSrc(p.foto))}" alt="${esc(p.nombre)}">`:`<div class="vw-noimg" style="--sc:${sec?sec.c:"#3f7cc4"}"><span>${esc((p.nombre||"?").trim().charAt(0).toUpperCase())}</span><small>Sin foto todavía</small></div>`;
   const L=$("#layer");
   L.innerHTML=`<div class="vw" role="dialog" aria-modal="true" aria-label="${esc(p.nombre)}">
@@ -561,7 +575,8 @@ function borrarPrenda(p){
 }
 function armDelete(btn,fn,que,detalle){btn.onclick=()=>confirmar2(que,detalle,fn)}
 
-function secOptions(sel,vacio){return `<option value="">${vacio||"— Elige sección —"}</option>`+Object.values(SEC).map(x=>`<option value="${x.id}" ${sel===x.id?"selected":""}>${esc(x.n)}</option>`).join("")}
+function ordenSecs(){const r=[];TOP().forEach(x=>{r.push(x);HIJOS(x.id).forEach(h=>r.push(h))});return r}
+function secOptions(sel,vacio){return `<option value="">${vacio||"— Elige sección —"}</option>`+ordenSecs().map(x=>`<option value="${x.id}" ${sel===x.id?"selected":""}>${esc(nombreSec(x.id))}</option>`).join("")}
 
 function openPrenda(p,preset={}){
   const isNew=!p; const v=Object.assign({nombre:"",seccion:"",color:"",talla:"",marca:"",ubicacion:"closet",caja:"",notas:"",foto:""},preset,p||{});
