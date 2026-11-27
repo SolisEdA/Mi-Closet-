@@ -233,6 +233,9 @@ const SECCIONES = [
     ["playa","Trajes de baño","#1aa3a3"],
     ["interior","Ropa interior","#b0577a"],
     ["calcetines","Calcetines","#58799b"],
+    ["bolsas","Bolsas","#9a6b3f"],
+    ["maletas","Maletas","#4f6f6a"],
+    ["otros","Otros","#7a7f88"],
   ]],
 ];
 const SEC = {}; SECCIONES.forEach(([g,l])=>l.forEach(([id,n,c])=>SEC[id]={id,n,c,g}));
@@ -559,7 +562,7 @@ function borrarPrenda(p){
 }
 function armDelete(btn,fn,que,detalle){btn.onclick=()=>confirmar2(que,detalle,fn)}
 
-function secOptions(sel){return `<option value="">— Elige sección —</option>`+Object.values(SEC).map(x=>`<option value="${x.id}" ${sel===x.id?"selected":""}>${esc(x.n)}</option>`).join("")}
+function secOptions(sel,vacio){return `<option value="">${vacio||"— Elige sección —"}</option>`+Object.values(SEC).map(x=>`<option value="${x.id}" ${sel===x.id?"selected":""}>${esc(x.n)}</option>`).join("")}
 
 function openPrenda(p,preset={}){
   const isNew=!p; const v=Object.assign({nombre:"",seccion:"",color:"",talla:"",marca:"",ubicacion:"closet",caja:"",notas:"",foto:""},preset,p||{});
@@ -567,7 +570,7 @@ function openPrenda(p,preset={}){
   const el=openSheet(`<h2>${isNew?"Agregar prenda":"Editar prenda"}</h2>
   <form id="fp" autocomplete="off">
     <div class="f"><label for="p-nombre">QUÉ ES</label><input id="p-nombre" required placeholder="Ej. Sudadera gris Nike" value="${esc(v.nombre)}"></div>
-    <div class="f"><label for="p-sec">SECCIÓN</label><select id="p-sec" required>${secOptions(v.seccion)}</select></div>
+    <div class="f"><label for="p-sec">SECCIÓN (OPCIONAL)</label><select id="p-sec">${secOptions(v.seccion,"— Sin sección —")}</select></div>
     <div class="two">
       <div class="f"><label for="p-color">COLOR</label><input id="p-color" placeholder="Ej. negro" value="${esc(v.color)}"></div>
       <div class="f"><label for="p-talla">TALLA</label><input id="p-talla" placeholder="Ej. M, 32" value="${esc(v.talla)}"></div>
