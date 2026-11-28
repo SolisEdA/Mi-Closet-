@@ -246,6 +246,27 @@ const SECCIONES = [
   ]],
 ];
 const SEC = {}; SECCIONES.forEach(([g,l])=>l.forEach(([id,n,c,parent])=>SEC[id]={id,n,c,g,parent:parent||""}));
+const FONDO_DEFAULT = {
+  "verano":"https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1600&q=70",
+  "invierno":"https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=1600&q=70",
+  "formal":"https://images.unsplash.com/photo-1491336477066-31156b5e4f35?auto=format&fit=crop&w=1600&q=70",
+  "casual":"https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1600&q=70",
+  "blusas":"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?auto=format&fit=crop&w=1600&q=70",
+  "pantalones":"https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=1600&q=70",
+  "faldas":"https://images.unsplash.com/photo-1509182469511-7f0b50bfa63e?auto=format&fit=crop&w=1600&q=70",
+  "jumpsuit":"https://images.unsplash.com/photo-1762327163417-ef87ac01f20b?auto=format&fit=crop&w=1600&q=70",
+  "fiesta":"https://images.unsplash.com/photo-1568251188392-ae32f898cb3b?auto=format&fit=crop&w=1600&q=70",
+  "pijamas":"https://images.unsplash.com/photo-1766056278967-c0646b1bfd67?auto=format&fit=crop&w=1600&q=70",
+  "gimnasio":"https://images.unsplash.com/photo-1579758629938-03607ccdbaba?auto=format&fit=crop&w=1600&q=70",
+  "playa":"https://images.unsplash.com/photo-1571425046076-94af69bd4201?auto=format&fit=crop&w=1600&q=70",
+  "interior":"https://images.unsplash.com/photo-1568441556126-f36ae0900180?auto=format&fit=crop&w=1600&q=70",
+  "calcetines":"https://images.unsplash.com/photo-1585499583264-491df5142e83?auto=format&fit=crop&w=1600&q=70",
+  "bolsas":"https://images.unsplash.com/photo-1605733513597-a8f8341084e6?auto=format&fit=crop&w=1600&q=70",
+  "abrigos":"https://images.unsplash.com/photo-1550872199-63f4382fe925?auto=format&fit=crop&w=1600&q=70",
+  "sueteres":"https://images.unsplash.com/photo-1643015862949-5c8d15a4242e?auto=format&fit=crop&w=1600&q=70",
+  "chamarras":"https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=1600&q=70",
+  "blusas-invierno":"https://images.unsplash.com/photo-1630333206089-12d2c8e32a44?auto=format&fit=crop&w=1600&q=70"
+}; // fotos de Unsplash (licencia libre)
 const TOP = ()=>Object.values(SEC).filter(x=>!x.parent);
 const HIJOS = id=>Object.values(SEC).filter(x=>x.parent===id);
 const enSec = (p,id)=>p.seccion===id||(SEC[p.seccion]&&SEC[p.seccion].parent===id);
@@ -381,7 +402,8 @@ function viewEtiquetas(){
   if(typeof qrcode!=="function") return h+`<div class="empty">El generador de QR no cargó. Recarga la página.</div>`;
   return h+`<div class="labels cards" style="margin-top:14px">${cs.map(c=>`<img alt="Etiqueta caja ${esc(c.codigo)}" src="${labelCanvas(c).toDataURL("image/png")}" style="width:100%;border-radius:8px;border:1px solid var(--line);background:#fff">`).join("")}</div>`;
 }
-function fondoURL(id){const p=(S.fondos||{})[id];return p?urlCache.get(p)||"":""}
+function fondoURL(id){const p=(S.fondos||{})[id];return (p&&urlCache.get(p))||FONDO_DEFAULT[id]||""}
+function fondoPropio(id){const p=(S.fondos||{})[id];return !!(p&&urlCache.get(p))}
 function bannerHTML(sec,hero){
   const k=countSec(sec.id); let enc=0; S.prendas.forEach(p=>{if(enSec(p,sec.id)&&p.ubicacion==="caja")enc++});
   const u=fondoURL(sec.id);
