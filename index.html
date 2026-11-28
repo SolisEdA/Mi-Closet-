@@ -243,6 +243,9 @@ const SECCIONES = [
     ["interior","Ropa interior","#b0577a"],
     ["calcetines","Calcetines","#58799b"],
     ["bolsas","Bolsas","#9a6b3f"],
+    ["jenny","Jenny","#b4577e"],
+    ["jenny-vestidos","Vestidos","#a0466b","jenny"],
+    ["jenny-blusas","Blusas","#c0708a","jenny"],
   ]],
 ];
 const SEC = {}; SECCIONES.forEach(([g,l])=>l.forEach(([id,n,c,parent])=>SEC[id]={id,n,c,g,parent:parent||""}));
@@ -265,6 +268,9 @@ const FONDO_DEFAULT = {
   "abrigos":"https://images.unsplash.com/photo-1550872199-63f4382fe925?auto=format&fit=crop&w=1600&q=70",
   "sueteres":"https://images.unsplash.com/photo-1643015862949-5c8d15a4242e?auto=format&fit=crop&w=1600&q=70",
   "chamarras":"https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=1600&q=70",
+  "jenny":"https://images.unsplash.com/photo-1766211697912-f2a6c8aadccf?auto=format&fit=crop&w=1600&q=70",
+  "jenny-vestidos":"https://images.unsplash.com/photo-1520026582657-4daf5bb60adb?auto=format&fit=crop&w=1600&q=70",
+  "jenny-blusas":"https://images.unsplash.com/photo-1778826971124-c5ee892e266e?auto=format&fit=crop&w=1600&q=70",
   "blusas-invierno":"https://images.unsplash.com/photo-1761117228880-df2425bd70da?auto=format&fit=crop&w=1600&q=70"
 }; // fotos de Unsplash (licencia libre)
 const TOP = ()=>Object.values(SEC).filter(x=>!x.parent);
